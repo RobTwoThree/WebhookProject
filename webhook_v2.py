@@ -1,7 +1,9 @@
+import json
+import MySQLdb
 import os
 from datetime import datetime, timedelta
 from flask import Flask, request, jsonify
-from config import HOST, PORT
+from config import HOST, PORT, DB_HOST, DB_USER, DB_PASSWORD, DATABASE
 
 def temp_token():
     import binascii
@@ -13,18 +15,21 @@ CLIENT_AUTH_TIMEOUT = 24 # in Hours
 
 app = Flask(__name__)
 
+database = MySQLdb.connect(DB_HOST, DB_USER, DB_PASSWORD, DATABASE)
+
+cursor = database.cursor()
+
 authorized_clients = {}
 
-
-@app.route('/webhook', methods=['GET', 'POST'])
+@app.route('/submit', methods=['GET', 'POST'])
 def webhook():
     if request.method == 'GET':
-      verify_token = request.args.get('verify_token')
-      if verify_token == WEBHOOK_VERIFY_TOKEN:
-          authorized_clients[request.remote_addr] = datetime.now()
-          return jsonify({'status':'success'}), 200
-      else:
-          return jsonify({'status':'bad token'}), 401
+        verify_token = request.args.get('verify_token')
+        if verify_token == WEBHOOK_VERIFY_TOKEN:
+            authorized_clients[request.remote_addr] = datetime.now()
+            return jsonify({'status':'success'}), 200
+        else:
+            return jsonify({'status':'bad token'}), 401
 
     elif request.method == 'POST':
         client = request.remote_addr
