@@ -13,9 +13,8 @@ cursor = database.cursor()
 def webhook():
     if request.method == 'POST':
         data = json.loads(request.data)
-        #print(request.json)
-        #print(data['message']['name'])
-        #print(data['type'])
+        print(request.json)
+        
         message_type = data['type']
         gym_name = data['message']['name']
         gym_id = data['message']['gym_id']
