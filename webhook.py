@@ -30,18 +30,49 @@ def webhook():
         raid_end = data['message']['raid_end']
         
         if message_type == "raid":
-            insert_query = "INSERT INTO raids(id, external_id, fort_id, level, pokemon_id, move_1, move_2, time_spawn, time_battle, time_end, cp) VALUES (null, null, " + str(gym_id) + ", " + str(raid_level) + ", " + str(boss_id) + ", null, null, null, " + str(raid_begin) + ", " + str(raid_end) + ", null);"
+
+            gym_id_query = "SELECT id FROM forts WHERE external_id='" + str(gym_id) + "';"
+            cursor.execute(gym_id_query)
+            gym_ids = cursor.fetchall()
+            gym_id_count = cursor.rowcount
+            if ( gym_id_count ):
+                gym_id = gym_ids[0][0]
+                insert_query = "INSERT INTO raids(id, external_id, fort_id, level, pokemon_id, move_1, move_2, time_spawn, time_battle, time_end, cp) VALUES (null, null, " + str(gym_id) + ", " + str(raid_level) + ", " + str(boss_id) + ", null, null, null, " + str(raid_begin) + ", " + str(raid_end) + ", null);"
+                
+                print(insert_query)
+                
+                try:
+                    cursor.execute(insert_query)
+                    #cursor.execute(insert_query_v2)
+                    database.commit()
+                    print("INSERT EXECUTED")
+                except:
+                    database.rollback()
+                    print("INSERT FAILED")
+                return 'Webhook message sent successfully.', 200
+            else:
+                print("Gym ID Not Found.")
+                return 'Gym ID was not found.', 500
+            #print(gym_id_query)
+            #print(gym_id_count)
+            #print(gym_id)
+
+            #insert_query = "INSERT INTO raids(id, external_id, fort_id, level, pokemon_id, move_1, move_2, time_spawn, time_battle, time_end, cp) VALUES (null, null, " + str(gym_id) + ", " + str(raid_level) + ", " + str(boss_id) + ", null, null, null, " + str(raid_begin) + ", " + str(raid_end) + ", null);"
             
-            try:
-                cursor.execute(insert_query)
-                database.commit()
-                print("INSERT EXECUTED")
-            except:
-                database.rollback()
-                print("INSERT FAILED")
+            #insert_query_v2 = "INSERT INTO raids(id, external_id, fort_id, level, pokemon_id, move_1, move_2, time_spawn, time_battle, time_end, cp) VALUES (null, null, 49, " + str(raid_level) + ", " + str(boss_id) + ", null, null, null, " + str(raid_begin) + ", " + str(raid_end) + ", null);"
+            
+
+            #try:
+            #    cursor.execute(insert_query)
+            #    cursor.execute(insert_query_v2)
+            #    database.commit()
+            #    print("INSERT EXECUTED")
+            #except:
+            #    database.rollback()
+            #    print("INSERT FAILED")
         
-            print(insert_query)
-        return 'Webhook message sent successfully.', 200
+            #print(insert_query)
+        #return 'Webhook message sent successfully.', 200
 
     else:
         abort(400)
