@@ -20,7 +20,6 @@ def webhook():
         
         print(data[0]['type'])
         print(data[0]['message']['name'])
-        print(data[0]['message']['pokemon_id'])
         
         message_type = data[0]['type']
         gym_name = data[0]['message']['name']
@@ -32,8 +31,8 @@ def webhook():
         raid_begin = data[0]['message']['raid_begin']
         raid_end = data[0]['message']['raid_end']
         
-        #Check if message has pokemon_id sent
-        if ( data[0]['message']['pokemon_id'] ):
+        #Check if message has pokemon_id sent. If not, its an egg
+        if 'pokemon_id' in data[0]['message']:
             boss_id = data[0]['message']['pokemon_id']
             boss_cp = data[0]['message']['cp']
             boss_move_1 = data[0]['message']['move_1']
@@ -65,12 +64,14 @@ def webhook():
                     cursor.execute(existing_raid_check_query)
                     raid_data = cursor.fetchall()
                     raid_count = cursor.rowcount
+                    
+                    print("raid_count = " + str(raid_count) )
+                    print("boss_id = " + str(boss_id) )
             
                     #If raid entry already exists and is not an egg, update the boss_id
-                    if ( raid_count ):
-                        current_boss_id = raid_data[0][2]
-                        
-                        if ( current_boss_id == 0 ): #Need to determine what value this is
+                    if ( raid_count and boss_id != 0 ):
+                        print("raid_data[0][2] = " + str(raid_data[0][2]))
+                        if ( raid_data[0][2] != 0 ): #Need to determine what value this is
                             try:
                                 cursor.execute(update_query)
                                 database.commit()
