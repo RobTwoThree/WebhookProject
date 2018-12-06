@@ -15,9 +15,9 @@ def webhook():
         data = json.loads(request.data)
         print(request.json)
         
-        print(data[0])
-        print(data[1])
-        print(data[2])
+        print(data[0][0])
+        print(data[0][1])
+
         #message_type = data['type']
         #gym_name = data['message']['name']
         #gym_id = data['message']['gym_id']
