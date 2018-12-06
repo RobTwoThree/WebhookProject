@@ -56,22 +56,21 @@ def webhook():
                 
                 existing_raid_check_query = "SELECT id, fort_id, pokemon_id, time_end FROM raids WHERE fort_id='" + str(gym_id) + "' AND time_end>'" + str(calendar.timegm(current_time.timetuple())) + "';"
                 
-                print(insert_query)
-                print(update_query)
-                print(existing_raid_check_query)
+                print("DEBUG: " + insert_query)
+                print("DEBUG: " + update_query)
+                print("DEBUG: " + existing_raid_check_query)
                 
                 try:
                     cursor.execute(existing_raid_check_query)
                     raid_data = cursor.fetchall()
                     raid_count = cursor.rowcount
                     
-                    print("raid_count = " + str(raid_count) )
-                    print("boss_id = " + str(boss_id) )
-            
-                    #If raid entry already exists and is not an egg, update the boss_id
+                    #If raid entry already exists and current boss_id is provided in message, update entry
                     if ( raid_count and boss_id != 0 ):
-                        print("raid_data[0][2] = " + str(raid_data[0][2]))
-                        if ( raid_data[0][2] != 0 ): #Need to determine what value this is
+                        print("DEBUG: raid_data[0][2] = " + str(raid_data[0][2]))
+                        
+                        #If exisiting pokemon_id in table is an egg, update with new boss_id
+                        if ( raid_data[0][2] == 0 ):
                             try:
                                 cursor.execute(update_query)
                                 database.commit()
