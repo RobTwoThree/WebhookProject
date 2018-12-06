@@ -1,5 +1,8 @@
 import json
 import MySQLdb
+import datetime
+import calendar
+import time
 from flask import Flask, request, abort
 from config import HOST, PORT, DB_HOST, DB_USER, DB_PASSWORD, DATABASE
 
@@ -42,40 +45,49 @@ def webhook():
                 gym_id = gym_ids[0][0]
                 insert_query = "INSERT INTO raids(id, external_id, fort_id, level, pokemon_id, move_1, move_2, time_spawn, time_battle, time_end, cp) VALUES (null, null, " + str(gym_id) + ", " + str(raid_level) + ", " + str(boss_id) + ", null, null, null, " + str(raid_begin) + ", " + str(raid_end) + ", null);"
                 
+                update_query = "UPDATE raids SET pokemon_id='" + str(boss_id) + "' WHERE fort_id='" + str(gym_id)+ "' AND time_end>'" + str(current_epoch_time) + "';"
+                
+                existing_raid_check_query = "SELECT id, fort_id, pokemon_id, time_end FROM raids WHERE fort_id='" + str(gym_id) + "' AND time_end>'" + str(calendar.timegm(current_time.timetuple())) + "';"
+                
                 print(insert_query)
+                print(update_query)
+                print(existing_raid_check_query)
                 
                 try:
-                    cursor.execute(insert_query)
-                    #cursor.execute(insert_query_v2)
-                    database.commit()
-                    print("INSERT EXECUTED")
+                    cursor.execute(existing_raid_check_query)
+                    raid_data = cursor.fetchall()
+                    raid_count = cursor.rowcount
+            
+                    #If raid entry already exists and is not an egg, update the boss_id
+                    if ( raid_count ):
+                        current_boss_id = raid_data[0][2]
+                        
+                        if ( current_boss_id == 0 ): #Need to determine what value this is
+                            try:
+                                cursor.execute(update_query)
+                                database.commit()
+                                print("RAID UPDATED")
+                            except:
+                                database.rollback()
+                                print("RAID UPDATE FAILED")
+                        else:
+                            pass
+                        return 'Duplicate webhook message was ignored.', 200
+                    else:
+                        try:
+                            cursor.execute(insert_query)
+                            database.commit()
+                            print("INSERT EXECUTED")
+                        except:
+                            database.rollback()
+                            print("INSERT FAILED")
+                        return 'Webhook message sent successfully.', 200
                 except:
                     database.rollback()
-                    print("INSERT FAILED")
-                return 'Webhook message sent successfully.', 200
+                    print("EXISTING RAID QUERY FAILED")
             else:
                 print("Gym ID Not Found.")
                 return 'Gym ID was not found.', 500
-            #print(gym_id_query)
-            #print(gym_id_count)
-            #print(gym_id)
-
-            #insert_query = "INSERT INTO raids(id, external_id, fort_id, level, pokemon_id, move_1, move_2, time_spawn, time_battle, time_end, cp) VALUES (null, null, " + str(gym_id) + ", " + str(raid_level) + ", " + str(boss_id) + ", null, null, null, " + str(raid_begin) + ", " + str(raid_end) + ", null);"
-            
-            #insert_query_v2 = "INSERT INTO raids(id, external_id, fort_id, level, pokemon_id, move_1, move_2, time_spawn, time_battle, time_end, cp) VALUES (null, null, 49, " + str(raid_level) + ", " + str(boss_id) + ", null, null, null, " + str(raid_begin) + ", " + str(raid_end) + ", null);"
-            
-
-            #try:
-            #    cursor.execute(insert_query)
-            #    cursor.execute(insert_query_v2)
-            #    database.commit()
-            #    print("INSERT EXECUTED")
-            #except:
-            #    database.rollback()
-            #    print("INSERT FAILED")
-        
-            #print(insert_query)
-        #return 'Webhook message sent successfully.', 200
 
     else:
         abort(400)
