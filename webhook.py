@@ -29,12 +29,18 @@ def webhook():
         gym_lon = data[0]['message']['longitude']
         gym_team = data[0]['message']['team']
         raid_level = data[0]['message']['level']
-        boss_id = data[0]['message']['pokemon_id']
-        boss_cp = data[0]['message']['cp']
-        boss_move_1 = data[0]['message']['move_1']
-        boss_move_2 = data[0]['message']['move_2']
         raid_begin = data[0]['message']['raid_begin']
         raid_end = data[0]['message']['raid_end']
+        
+        #Check if message has pokemon_id sent
+        if ( data[0]['message']['pokemon_id'] ):
+            boss_id = data[0]['message']['pokemon_id']
+            boss_cp = data[0]['message']['cp']
+            boss_move_1 = data[0]['message']['move_1']
+            boss_move_2 = data[0]['message']['move_2']
+        else:
+            boss_id = 0
+        
         current_time = datetime.datetime.utcnow()
         
         if message_type == "raid":
