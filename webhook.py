@@ -16,20 +16,21 @@ def webhook():
         print(request.json)
         
         print(data[0]['type'])
-
-        #message_type = data['type']
-        #gym_name = data['message']['name']
-        #gym_id = data['message']['gym_id']
-        #gym_lat = data['message']['latitude']
-        #gym_lon = data['message']['longitude']
-        #gym_team = data['message']['team']
-        #raid_level = data['message']['level']
-        #boss_id = data['message']['pokemon_id']
-        #boss_cp = data['message']['cp']
-        #boss_move_1 = data['message']['move_1']
-        #boss_move_2 = data['message']['move_2']
-        #raid_begin = data['message']['raid_begin']
-        #raid_end = data['message']['raid_end']
+        print(data[0]['message']['name'])
+        
+        message_type = data[0]['type']
+        gym_name = data[0]['message']['name']
+        gym_id = data[0]['message']['gym_id']
+        gym_lat = data[0]['message']['latitude']
+        gym_lon = data[0]['message']['longitude']
+        gym_team = data[0]['message']['team']
+        raid_level = data[0]['message']['level']
+        boss_id = data[0]['message']['pokemon_id']
+        boss_cp = data[0]['message']['cp']
+        boss_move_1 = data[0]['message']['move_1']
+        boss_move_2 = data[0]['message']['move_2']
+        raid_begin = data[0]['message']['raid_begin']
+        raid_end = data[0]['message']['raid_end']
         
         if message_type == "raid":
 
