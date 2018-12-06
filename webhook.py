@@ -20,6 +20,7 @@ def webhook():
         
         print(data[0]['type'])
         print(data[0]['message']['name'])
+        print(data[0]['message']['pokemon_id'])
         
         message_type = data[0]['type']
         gym_name = data[0]['message']['name']
