@@ -27,6 +27,7 @@ def webhook():
         gym_id = data[0]['message']['gym_id']
         gym_lat = data[0]['message']['latitude']
         gym_lon = data[0]['message']['longitude']
+        gym_url = data[0]['message']['gym_url']
         gym_team = data[0]['message']['team']
         raid_level = data[0]['message']['level']
         raid_begin = data[0]['message']['raid_begin']
@@ -98,8 +99,24 @@ def webhook():
                     print("EXISTING RAID QUERY FAILED")
             else:
                 print("Gym ID Not Found.")
-                return 'Gym ID was not found.', 500
+                add_gym_query = "INSERT INTO forts(external_id, lat, lon, name, url) VALUES('" + str(gym_id) + "', " +  str(gym_lat) + ", " + str(gym_lon) + ", '" + str(gym_name) + "', '" + str(gym_url) + "');"
+                
+                if ( DEBUG ):
+                   print("DEBUG: " + str(add_gym_query))
+                
+                try:
+                    cursor.execute(add_gym_query)
+                    database.commit()
+                    print("GYM ADDED. Gym:" + str(gym_id) + " Lat:" + str(gym_lat) + " Lon:" + str(gym_lon) + " Name:" + str(gym_name) + " URL:" + str(gym_url))
+                    return 'Unknown gym. Insert successful.', 200
+                except:
+                    database.rollback()
+                    print("GYM INSERT FAILED.")
+                    return 'Unknown gym. Insert failed.', 500
 
+        if message_type == "pokemon":
+            print("Message is type: pokemon")
+            return 'Pokemon type was sent.', 200
     else:
         abort(400)
 
