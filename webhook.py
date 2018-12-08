@@ -84,7 +84,7 @@ def webhook():
                                 print("RAID UPDATE FAILED.")
                         else:
                             pass
-                        return 'Duplicate webhook message was ignored.', 200
+                        return 'Duplicate webhook message was ignored.\n', 200
                     else:
                         try:
                             cursor.execute(insert_query)
@@ -93,7 +93,7 @@ def webhook():
                         except:
                             database.rollback()
                             print("INSERT FAILED.")
-                        return 'Webhook message sent successfully.', 200
+                        return 'Webhook message sent successfully.\n', 200
                 except:
                     database.rollback()
                     print("EXISTING RAID QUERY FAILED")
@@ -108,15 +108,15 @@ def webhook():
                     cursor.execute(add_gym_query)
                     database.commit()
                     print("GYM ADDED. Gym:" + str(gym_id) + " Lat:" + str(gym_lat) + " Lon:" + str(gym_lon) + " Name:" + str(gym_name) + " URL:" + str(gym_url))
-                    return 'Unknown gym. Insert successful.', 200
+                    return 'Unknown gym. Insert successful.\n', 200
                 except:
                     database.rollback()
                     print("GYM INSERT FAILED.")
-                    return 'Unknown gym. Insert failed.', 500
+                    return 'Unknown gym. Insert failed.\n', 500
 
         if message_type == "pokemon":
             print("Message is type: pokemon")
-            return 'Pokemon type was sent.', 200
+            return 'Pokemon type was sent.\n', 200
     else:
         abort(400)
 
