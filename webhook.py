@@ -3,8 +3,11 @@ import MySQLdb
 import datetime
 import calendar
 import time
+import logging
 from flask import Flask, request, abort
 from config import HOST, PORT, DB_HOST, DB_USER, DB_PASSWORD, DATABASE, DEBUG
+
+logging.basicConfig(filename='debug_webhook.log',level=logging.DEBUG)
 
 app = Flask(__name__)
 
@@ -12,15 +15,20 @@ database = MySQLdb.connect(DB_HOST, DB_USER, DB_PASSWORD, DATABASE)
 
 cursor = database.cursor()
 
+print("Webhook Started.")
+
 @app.route('/submit', methods=['POST'])
 def webhook():
     if request.method == 'POST':
         data = json.loads(request.data)
         print("MESSAGE: " + str(request.json))
+        logging.info("MESSAGE: " + str(request.json))
         
         if ( DEBUG ):
-            print("DEBUG: " + str(data[0]['type']))
-            print("DEBUG: " + str(data[0]['message']['name']))
+            print("DEBUG: type=" + str(data[0]['type']))
+            print("DEBUG: name=" + str(data[0]['message']['name']))
+            logging.debug("type=" + str(data[0]['type']))
+            logging.debug("name=" + str(data[0]['message']['name']))
         
         message_type = data[0]['type']
         gym_name = data[0]['message']['name']
@@ -62,6 +70,9 @@ def webhook():
                     print("DEBUG: " + insert_query)
                     print("DEBUG: " + update_query)
                     print("DEBUG: " + existing_raid_check_query)
+                    logging.debug(insert_query)
+                    logging.debug(update_query)
+                    logging.debug(existing_raid_check_query)
                 
                 try:
                     cursor.execute(existing_raid_check_query)
@@ -72,16 +83,19 @@ def webhook():
                     if ( raid_count and boss_id != 0 ):
                         if ( DEBUG ):
                             print("DEBUG: raid_data[0][2] = " + str(raid_data[0][2]))
-                        
+                            logging.debug("raid_data[0][2] = " + str(raid_data[0][2]))
+                    
                         #If exisiting pokemon_id in table is an egg, update with new boss_id
                         if ( raid_data[0][2] == 0 ):
                             try:
                                 cursor.execute(update_query)
                                 database.commit()
                                 print("RAID UPDATED. Old Boss:" + str(raid_data[0][2]) + " New Boss:" + str(boss_id))
+                                logging.info("RAID UPDATED. Old Boss:" + str(raid_data[0][2]) + " New Boss:" + str(boss_id))
                             except:
                                 database.rollback()
                                 print("RAID UPDATE FAILED.")
+                                logging.info("RAID UPDATE FAILED.")
                         else:
                             pass
                         return 'Duplicate webhook message was ignored.\n', 200
@@ -90,32 +104,41 @@ def webhook():
                             cursor.execute(insert_query)
                             database.commit()
                             print("INSERT EXECUTED. Gym:" + str(gym_id) + " Raid:" + str(raid_level) + " Boss:" + str(boss_id))
+                            logging.info("INSERT EXECUTED. Gym:" + str(gym_id) + " Raid:" + str(raid_level) + " Boss:" + str(boss_id))
                         except:
                             database.rollback()
                             print("INSERT FAILED.")
+                            logging.info("INSERT FAILED.")
                         return 'Webhook message sent successfully.\n', 200
                 except:
                     database.rollback()
                     print("EXISTING RAID QUERY FAILED")
             else:
                 print("Gym ID Not Found.")
+                logging.info("Gym ID Not Found.")
+                
                 add_gym_query = "INSERT INTO forts(external_id, lat, lon, name, url) VALUES('" + str(gym_id) + "', " +  str(gym_lat) + ", " + str(gym_lon) + ", '" + str(gym_name) + "', '" + str(gym_url) + "');"
                 
                 if ( DEBUG ):
                    print("DEBUG: " + str(add_gym_query))
+                   logging.debug(str(add_gym_query))
                 
                 try:
                     cursor.execute(add_gym_query)
                     database.commit()
                     print("GYM ADDED. Gym:" + str(gym_id) + " Lat:" + str(gym_lat) + " Lon:" + str(gym_lon) + " Name:" + str(gym_name) + " URL:" + str(gym_url))
+                    logging.info("GYM ADDED. Gym:" + str(gym_id) + " Lat:" + str(gym_lat) + " Lon:" + str(gym_lon) + " Name:" + str(gym_name) + " URL:" + str(gym_url))
                     return 'Unknown gym. Insert successful.\n', 200
                 except:
                     database.rollback()
                     print("GYM INSERT FAILED.")
+                    logging.info("GYM INSERT FAILED.")
                     return 'Unknown gym. Insert failed.\n', 500
 
         if message_type == "pokemon":
             print("Message is type: pokemon")
+            logging.info("Message is type: pokemon")
+            
             return 'Pokemon type was sent.\n', 200
     else:
         abort(400)
