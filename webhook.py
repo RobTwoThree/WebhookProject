@@ -4,7 +4,7 @@ import datetime
 import calendar
 import time
 from flask import Flask, request, abort
-from config import HOST, PORT, DB_HOST, DB_USER, DB_PASSWORD, DATABASE
+from config import HOST, PORT, DB_HOST, DB_USER, DB_PASSWORD, DATABASE, DEBUG
 
 app = Flask(__name__)
 
@@ -16,10 +16,11 @@ cursor = database.cursor()
 def webhook():
     if request.method == 'POST':
         data = json.loads(request.data)
-        print(request.json)
+        print("MESSAGE: " + str(request.json))
         
-        print(data[0]['type'])
-        print(data[0]['message']['name'])
+        if ( DEBUG ):
+            print("DEBUG: " + str(data[0]['type']))
+            print("DEBUG: " + str(data[0]['message']['name']))
         
         message_type = data[0]['type']
         gym_name = data[0]['message']['name']
@@ -56,9 +57,10 @@ def webhook():
                 
                 existing_raid_check_query = "SELECT id, fort_id, pokemon_id, time_end FROM raids WHERE fort_id='" + str(gym_id) + "' AND time_end>'" + str(calendar.timegm(current_time.timetuple())) + "';"
                 
-                print("DEBUG: " + insert_query)
-                print("DEBUG: " + update_query)
-                print("DEBUG: " + existing_raid_check_query)
+                if ( DEBUG ):
+                    print("DEBUG: " + insert_query)
+                    print("DEBUG: " + update_query)
+                    print("DEBUG: " + existing_raid_check_query)
                 
                 try:
                     cursor.execute(existing_raid_check_query)
@@ -67,17 +69,18 @@ def webhook():
                     
                     #If raid entry already exists and current boss_id is provided in message, update entry
                     if ( raid_count and boss_id != 0 ):
-                        print("DEBUG: raid_data[0][2] = " + str(raid_data[0][2]))
+                        if ( DEBUG ):
+                            print("DEBUG: raid_data[0][2] = " + str(raid_data[0][2]))
                         
                         #If exisiting pokemon_id in table is an egg, update with new boss_id
                         if ( raid_data[0][2] == 0 ):
                             try:
                                 cursor.execute(update_query)
                                 database.commit()
-                                print("RAID UPDATED")
+                                print("RAID UPDATED. Old Boss:" + str(raid_data[0][2]) + " New Boss:" + str(boss_id))
                             except:
                                 database.rollback()
-                                print("RAID UPDATE FAILED")
+                                print("RAID UPDATE FAILED.")
                         else:
                             pass
                         return 'Duplicate webhook message was ignored.', 200
@@ -85,10 +88,10 @@ def webhook():
                         try:
                             cursor.execute(insert_query)
                             database.commit()
-                            print("INSERT EXECUTED")
+                            print("INSERT EXECUTED. Gym:" + str(gym_id) + " Raid:" + str(raid_level) + " Boss:" + str(boss_id))
                         except:
                             database.rollback()
-                            print("INSERT FAILED")
+                            print("INSERT FAILED.")
                         return 'Webhook message sent successfully.', 200
                 except:
                     database.rollback()
