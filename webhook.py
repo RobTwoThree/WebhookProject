@@ -66,6 +66,8 @@ def webhook():
                 
                 existing_raid_check_query = "SELECT id, fort_id, pokemon_id, time_end FROM raids WHERE fort_id='" + str(gym_id) + "' AND time_end>'" + str(calendar.timegm(current_time.timetuple())) + "';"
                 
+                fort_sightings_query = "SELECT id, fort_id, team FROM fort_sightings WHERE fort_id='" + str(gym_id) + "';"
+                
                 if ( DEBUG ):
                     print("DEBUG: " + insert_query)
                     print("DEBUG: " + update_query)
@@ -109,6 +111,37 @@ def webhook():
                             database.rollback()
                             print("INSERT FAILED.")
                             logging.info("INSERT FAILED.")
+                        
+                        #Need to check if fort_id is in fort_sightings. If not, insert as new entry, otherwise update.
+                        cursor.execute(fort_sightings_query)
+                        fs_count = cursor.rowcount
+                        
+                        if ( fs_count ):
+                            fort_sightings_update = "UPDATE fort_sightings SET team='" + str(gym_team) + "', guard_pokemon_id='" + str(boss_id) + "' WHERE fort_id='" + str(gym_id) + "';"
+                        
+                            try:
+                                cursor.execute(fort_sightings_update)
+                                database.commit()
+                                print("UPDATED FORT_SIGHTINGS. Gym:" + str(gym_id) + " Boss:" + str(boss_id) + " Team:" + str(gym_team))
+                                logging.info("UPDATED FORT_SIGHTINGS. Gym:" + str(gym_id) + " Boss:" + str(boss_id) + " Team:" + str(gym_team))
+                            except:
+                                database.rollback()
+                                print("UPDATE TO FORT_SIGHTINGS FAILED.")
+                                logging.info("UPDATE TO FORT_SIGHTINGS FAILED.")
+
+                        else:
+                            fort_sightings_insert = "INSERT INTO fort_sightings(fort_id, team, last_modified, guard_pokemon_id) VALUES (" + str(gym_id) + ", " + str(gym_team) + ", " + str(calendar.timegm(current_time.timetuple())) + ", " + str(boss_id) + ");"
+                            
+                            try:
+                                cursor.execute(fort_sightings_insert)
+                                database.commit()
+                                print("INSERTED INTO FORT_SIGHTINGS. Gym:" + str(gym_id) + " Boss:" + str(boss_id) + " Team:" + str(gym_team))
+                                logging.info("INSERTED INTO FORT_SIGHTINGS. Gym:" + str(gym_id) + " Boss:" + str(boss_id) + " Team:" + str(gym_team))
+                            except:
+                                database.rollback()
+                                print("INSERT INTO FORT_SIGHTINGS FAILED.")
+                                logging.info("INSERT INTO FORT_SIGHTINGS FAILED.")
+
                         return 'Webhook message sent successfully.\n', 200
                 except:
                     database.rollback()
