@@ -55,6 +55,7 @@ def webhook():
         if message_type == "raid":
 
             gym_id_query = "SELECT id FROM forts WHERE external_id='" + str(gym_id) + "';"
+            database.ping(True)
             cursor.execute(gym_id_query)
             gym_ids = cursor.fetchall()
             gym_id_count = cursor.rowcount
@@ -77,6 +78,7 @@ def webhook():
                     logging.debug(existing_raid_check_query)
                 
                 try:
+                    database.ping(True)
                     cursor.execute(existing_raid_check_query)
                     raid_data = cursor.fetchall()
                     raid_count = cursor.rowcount
@@ -90,6 +92,7 @@ def webhook():
                         #If exisiting pokemon_id in table is an egg, update with new boss_id
                         if ( raid_data[0][2] == 0 ):
                             try:
+                                database.ping(True)
                                 cursor.execute(update_query)
                                 database.commit()
                                 print("RAID UPDATED. Old Boss:" + str(raid_data[0][2]) + " New Boss:" + str(boss_id))
@@ -103,6 +106,7 @@ def webhook():
                         return 'Duplicate webhook message was ignored.\n', 200
                     else:
                         try:
+                            database.ping(True)
                             cursor.execute(insert_query)
                             database.commit()
                             print("INSERT EXECUTED. Gym:" + str(gym_id) + " Raid:" + str(raid_level) + " Boss:" + str(boss_id))
@@ -113,6 +117,7 @@ def webhook():
                             logging.info("INSERT FAILED.")
                         
                         #Need to check if fort_id is in fort_sightings. If not, insert as new entry, otherwise update.
+                        database.ping(True)
                         cursor.execute(fort_sightings_query)
                         fs_count = cursor.rowcount
                         
@@ -120,6 +125,7 @@ def webhook():
                             fort_sightings_update = "UPDATE fort_sightings SET team='" + str(gym_team) + "', guard_pokemon_id='" + str(boss_id) + "' WHERE fort_id='" + str(gym_id) + "';"
                         
                             try:
+                                database.ping(True)
                                 cursor.execute(fort_sightings_update)
                                 database.commit()
                                 print("UPDATED FORT_SIGHTINGS. Gym:" + str(gym_id) + " Boss:" + str(boss_id) + " Team:" + str(gym_team))
@@ -133,6 +139,7 @@ def webhook():
                             fort_sightings_insert = "INSERT INTO fort_sightings(fort_id, team, last_modified, guard_pokemon_id) VALUES (" + str(gym_id) + ", " + str(gym_team) + ", " + str(calendar.timegm(current_time.timetuple())) + ", " + str(boss_id) + ");"
                             
                             try:
+                                database.ping(True)
                                 cursor.execute(fort_sightings_insert)
                                 database.commit()
                                 print("INSERTED INTO FORT_SIGHTINGS. Gym:" + str(gym_id) + " Boss:" + str(boss_id) + " Team:" + str(gym_team))
@@ -157,6 +164,7 @@ def webhook():
                    logging.debug(str(add_gym_query))
                 
                 try:
+                    database.ping(True)
                     cursor.execute(add_gym_query)
                     database.commit()
                     print("GYM ADDED. Gym:" + str(gym_id) + " Lat:" + str(gym_lat) + " Lon:" + str(gym_lon) + " Name:" + str(gym_name) + " URL:" + str(gym_url))
