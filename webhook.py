@@ -165,6 +165,34 @@ def proces_raid(data):
 
 def process_pokemon(data):
     current_time = datetime.datetime.utcnow()
+
+    #Load payload data into variables
+    encounter_id = data[0]['message']['encounter_id']
+    pokemon_id = data[0]['message']['pokemon_id']
+    updated = data[0]['message']['last_modified_time']
+    spawn_id = data[0]['message']['spawnpoint_id']
+    lat = data[0]['message']['latitude']
+    lon = data[0]['message']['longitude']
+    expire_timestamp = data[0]['message']['disappear_time']
+    despawn_time = data[0]['message']['time_until_hidden_ms']
+
+    pokemon_insert_query = "INSERT INTO sightings(pokemon_id, spawn_id, expire_timestamp, encounter_id, lat, lon) VALUES(" + str(pokemon_id) + ", " + str(spawn_id) + ", " + str(expire_timestamp) + ", " + str(encounter_id) + ", " + str(lat) + ", " + str(lon) + ");"
+
+    if ( DEBUG ):
+        print("DEBUG: " + str(pokemon_insert_query))
+        logging.debug(str(pokemon_insert_query))
+    try:
+        database.ping(True)
+        cursor.execute(pokemon_insert_query)
+        database.commit()
+        print("POKEMON ADDED. Pokemon ID:" + str(pokemon_id) + " Lat:" + str(lat) + " Lon:" + str(lon))
+        logging.info("POKEMON ADDED. Pokemon ID:" + str(pokemon_id) + " Lat:" + str(lat) + " Lon:" + str(lon))
+        return 'Pokemon insert successful.\n', 200
+    except:
+        database.rollback()
+        print("POKEMON INSERT FAILED.")
+        logging.info("POKEMON INSERT FAILED.")
+
     
     print("POKEMON MESSAGE: " + str(data))
     return 'Pokemon type processed.\n', 200
@@ -178,9 +206,9 @@ def webhook():
         
         if ( DEBUG ):
             print("DEBUG: type=" + str(data[0]['type']))
-            print("DEBUG: name=" + str(data[0]['message']['name']))
+            #print("DEBUG: name=" + str(data[0]['message']['name']))
             logging.debug("type=" + str(data[0]['type']))
-            logging.debug("name=" + str(data[0]['message']['name']))
+            #logging.debug("name=" + str(data[0]['message']['name']))
         
         message_type = data[0]['type']
         
