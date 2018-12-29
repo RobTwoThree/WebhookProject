@@ -35,7 +35,7 @@ def webhook():
         gym_id = data[0]['message']['gym_id']
         gym_lat = data[0]['message']['latitude']
         gym_lon = data[0]['message']['longitude']
-        gym_url = data[0]['message']['gym_url']
+        gym_url = data[0]['message']['url']
         gym_team = data[0]['message']['team']
         raid_level = data[0]['message']['level']
         raid_begin = data[0]['message']['raid_begin']
