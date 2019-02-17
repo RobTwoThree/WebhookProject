@@ -46,9 +46,10 @@ def webhook():
             #Check if message has pokemon_id sent. If not, its an egg
             if 'pokemon_id' in data[0]['message']:
                 boss_id = data[0]['message']['pokemon_id']
-                boss_cp = data[0]['message']['cp']
-                boss_move_1 = data[0]['message']['move_1']
-                boss_move_2 = data[0]['message']['move_2']
+                if boss_id != 0:
+                    boss_cp = data[0]['message']['cp']
+                    boss_move_1 = data[0]['message']['move_1']
+                    boss_move_2 = data[0]['message']['move_2']
             else:
                 boss_id = 0
 
