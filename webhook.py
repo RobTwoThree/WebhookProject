@@ -38,8 +38,8 @@ def webhook():
         gym_url = data[0]['message']['url']
         gym_team = data[0]['message']['team']
         raid_level = data[0]['message']['level']
-        raid_begin = data[0]['message']['raid_begin']
-        raid_end = data[0]['message']['raid_end']
+        raid_begin = data[0]['message']['start]
+        raid_end = data[0]['message']['end']
         
         #Check if message has pokemon_id sent. If not, its an egg
         if 'pokemon_id' in data[0]['message']:
