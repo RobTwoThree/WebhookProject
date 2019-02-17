@@ -26,33 +26,31 @@ def webhook():
         
         if ( DEBUG ):
             print("DEBUG: type=" + str(data[0]['type']))
-            print("DEBUG: name=" + str(data[0]['message']['name']))
             logging.debug("type=" + str(data[0]['type']))
-            logging.debug("name=" + str(data[0]['message']['name']))
         
         message_type = data[0]['type']
-        gym_name = data[0]['message']['name']
-        gym_id = data[0]['message']['gym_id']
-        gym_lat = data[0]['message']['latitude']
-        gym_lon = data[0]['message']['longitude']
-        gym_url = data[0]['message']['url']
-        gym_team = data[0]['message']['team_id']
-        raid_level = data[0]['message']['level']
-        raid_begin = data[0]['message']['start']
-        raid_end = data[0]['message']['end']
-        
-        #Check if message has pokemon_id sent. If not, its an egg
-        if 'pokemon_id' in data[0]['message']:
-            boss_id = data[0]['message']['pokemon_id']
-            boss_cp = data[0]['message']['cp']
-            boss_move_1 = data[0]['message']['move_1']
-            boss_move_2 = data[0]['message']['move_2']
-        else:
-            boss_id = 0
         
         current_time = datetime.datetime.utcnow()
         
         if message_type == "raid":
+            gym_name = data[0]['message']['name']
+            gym_id = data[0]['message']['gym_id']
+            gym_lat = data[0]['message']['latitude']
+            gym_lon = data[0]['message']['longitude']
+            gym_url = data[0]['message']['url']
+            gym_team = data[0]['message']['team_id']
+            raid_level = data[0]['message']['level']
+            raid_begin = data[0]['message']['start']
+            raid_end = data[0]['message']['end']
+        
+            #Check if message has pokemon_id sent. If not, its an egg
+            if 'pokemon_id' in data[0]['message']:
+                boss_id = data[0]['message']['pokemon_id']
+                boss_cp = data[0]['message']['cp']
+                boss_move_1 = data[0]['message']['move_1']
+                boss_move_2 = data[0]['message']['move_2']
+            else:
+                boss_id = 0
 
             gym_id_query = "SELECT id FROM forts WHERE external_id='" + str(gym_id) + "';"
             database.ping(True)
@@ -181,6 +179,12 @@ def webhook():
             logging.info("Message is type: pokemon")
             
             return 'Pokemon type was sent.\n', 200
+
+        if message_type == "gym":
+            print("Message is type: gym")
+            logging.info("Message is type: gym")
+            
+            return 'Gym type was sent.\n', 200
     else:
         abort(400)
 
