@@ -31,6 +31,7 @@ def webhook():
         message_type = data[0]['type']
         
         current_time = datetime.datetime.utcnow()
+        current_epoch_time = time.time()
         
         if message_type == "raid":
             gym_name = data[0]['message']['name']
@@ -176,16 +177,91 @@ def webhook():
                     return 'Unknown gym. Insert failed.\n', 500
 
         if message_type == "pokemon":
+            disappear_time = data[0]['disappear_time']
+            encounter_id = data[0]['encounter_id']
+            last_modified_time = data[0]['last_modified_time']
+            latitude = data[0]['latitude']
+            longitude = data[0]['longitude']
+            pokemon_id = data[0]['pokemon_id']
+            spawnpoint_id = data[0]['spawnpoint_id']
+            time_until_hidden_ms = data[0]['time_until_hidden_ms']
+
             print("Message is type: pokemon")
             logging.info("Message is type: pokemon")
             
             return 'Pokemon type was sent.\n', 200
 
         if message_type == "gym":
+            raid_active_until = data[0]['message']['raid_active_until']
+            external_id = data[0]['message']['gym_id']
+            gym_name = data[0]['message']['name']
+            gym_description = data[0]['message']['description']
+            gym_url = data[0]['message']['url']
+            gym_team = data[0]['message']['team_id']
+            slots_available = data[0]['message']['slots_available']
+            guard_pokemon_id = data[0]['message']['guard_pokemon_id']
+            lowest_pokemon_motivation = data[0]['message']['lowest_pokemon_motivation']
+            total_cp = data[0]['message']['total_cp']
+            enabled = data[0]['message']['enabled']
+            gym_lat = data[0]['message']['latitude']
+            gym_lon = data[0]['message']['longitude']
+            last_modified = data[0]['message']['last_modified']
+
+            get_gym_id_query = "SELECT id FROM forts WHERE external_id='" + str(external_id) + "'"
+ 
+            insert_gym_query = "INSERT INTO forts(external_id, lat, lon, name, url) VALUES ('" + str(external_id) + "','" + str(gym_lat) + "','" + str(gym_lon) + "','" + str(gym_name) + "','" + str(gym_url) + "');"
+
+
+            try:
+                database.ping(True)
+                cursor.execute(get_gym_id_query)
+                fort_count = cursor.rowcount
+
+                database.commit()
+            except:
+                database.rollback()
+
+            if not (fort_count):
+                print("Fort ID was not found. Attempting insert.")
+
+                try:
+                    database.ping(True)
+                    cursor.execute(insert_gym_query)
+                    database.commit()
+                
+                    print("New gym added. External ID: " + str(external_id) + " Lat: " + str(gym_lat) + " Lon: " + str(gym_lon) + " Name: " + str(gym_name) + " URL: " + str(gym_url))
+                    logging.info("GYM ADDED. External ID: " + str(external_id) + " Lat: " + str(gym_lat) + " Lon: " + str(gym_lon) + " Name: " + str(gym_name) + " URL: " + str(gym_url))
+                except:
+                    database.rollback()
+
+            try:
+                database.ping(True)
+                cursor.execute(get_gym_id_query)
+                fort_data = cursor.fetchall()
+
+                database.commit()
+            except:
+                database.rollback()
+
+            gym_id = fort_data[0][0]
+
+            insert_fort_sighting_query = "INSERT INTO fort_sightings(fort_id, last_modified, team, guard_pokemon_id, slots_available, updated) VALUES ('" + str(gym_id) + "','" + str(last_modified) + "','" + str(gym_team) + "','" + str(guard_pokemon_id) +  "','" + str(slots_available) + "','" + str(current_epoch_time) + "');"
+                
+            try:
+                database.ping(True)
+                cursor.execute(insert_fort_sighting_query)
+                database.commit()
+                
+                print("Gym sighting inserted. Gym: " + str(gym_id) + " Last Modified: " + str(last_modified) + " Gym Team: " + str(gym_team) + " Guarding Pokemon: " + str(guard_pokemon_id) + " Slots Available: " + str(slots_available))
+                logging.info("Gym sighting inserted. Gym: " + str(gym_id) + " Last Modified: " + str(last_modified) + " Gym Team: " + str(gym_team) + " Guarding Pokemon: " + str(guard_pokemon_id) + " Slots Available: " + str(slots_available))
+                
+            except:
+                database.rollback()
+
             print("Message is type: gym")
             logging.info("Message is type: gym")
             
-            return 'Gym type was sent.\n', 200
+            return 'Gym type was sent and processed.\n', 200
     else:
         abort(400)
 
