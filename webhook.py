@@ -122,8 +122,8 @@ def webhook():
                         fs_count = cursor.rowcount
                         
                         if ( fs_count ):
-                            fort_sightings_update = "UPDATE fort_sightings SET team='" + str(gym_team) + "', guard_pokemon_id='" + str(boss_id) + "' WHERE fort_id='" + str(gym_id) + "';"
-                        
+                            fort_sightings_update = "UPDATE fort_sightings SET team='" + str(gym_team) + "' WHERE fort_id='" + str(gym_id) + "';"
+                            
                             try:
                                 database.ping(True)
                                 cursor.execute(fort_sightings_update)
@@ -136,7 +136,7 @@ def webhook():
                                 logging.info("UPDATE TO FORT_SIGHTINGS FAILED.")
 
                         else:
-                            fort_sightings_insert = "INSERT INTO fort_sightings(fort_id, team, last_modified, guard_pokemon_id) VALUES (" + str(gym_id) + ", " + str(gym_team) + ", " + str(calendar.timegm(current_time.timetuple())) + ", " + str(boss_id) + ");"
+                            fort_sightings_insert = "INSERT INTO fort_sightings(fort_id, team, last_modified) VALUES (" + str(gym_id) + ", " + str(gym_team) + ", " + str(calendar.timegm(current_time.timetuple())) + ");"
                             
                             try:
                                 database.ping(True)
@@ -149,7 +149,7 @@ def webhook():
                                 print("INSERT INTO FORT_SIGHTINGS FAILED.")
                                 logging.info("INSERT INTO FORT_SIGHTINGS FAILED.")
 
-                        return 'Webhook message sent successfully.\n', 200
+                        return 'Raid type was sent and processed.\n', 200
                 except:
                     database.rollback()
                     print("EXISTING RAID QUERY FAILED")
@@ -221,7 +221,7 @@ def webhook():
             except:
                 database.rollback()
 
-            if not (fort_count):
+            if not ( fort_count ):
                 print("Fort ID was not found. Attempting insert.")
 
                 try:
@@ -246,17 +246,43 @@ def webhook():
             gym_id = fort_data[0][0]
 
             insert_fort_sighting_query = "INSERT INTO fort_sightings(fort_id, last_modified, team, guard_pokemon_id, slots_available, updated) VALUES ('" + str(gym_id) + "','" + str(last_modified) + "','" + str(gym_team) + "','" + str(guard_pokemon_id) +  "','" + str(slots_available) + "','" + str(current_epoch_time) + "');"
-                
+
+            update_fort_sighting_query = "UPDATE fort_sightings SET last_modified='" + str(last_modified) + "', team='" + str(gym_team) + "', guard_pokemon_id='" + str(guard_pokemon_id) +  "', slots_available='" + str(slots_available) + "', updated='" + str(current_epoch_time) + "' WHERE fort_id='" + str(gym_id) + "';"
+
+            fort_sightings_query = "SELECT id, fort_id FROM fort_sightings WHERE fort_id='" + str(gym_id) + "'"
+
             try:
                 database.ping(True)
-                cursor.execute(insert_fort_sighting_query)
+                cursor.execute(fort_sightings_query)
+                fs_count = cursor.rowcount
+                
                 database.commit()
-                
-                print("Gym sighting inserted. Gym: " + str(gym_id) + " Last Modified: " + str(last_modified) + " Gym Team: " + str(gym_team) + " Guarding Pokemon: " + str(guard_pokemon_id) + " Slots Available: " + str(slots_available))
-                logging.info("Gym sighting inserted. Gym: " + str(gym_id) + " Last Modified: " + str(last_modified) + " Gym Team: " + str(gym_team) + " Guarding Pokemon: " + str(guard_pokemon_id) + " Slots Available: " + str(slots_available))
-                
             except:
                 database.rollback()
+
+
+            if ( fs_count ):
+                try:
+                    database.ping(True)
+                    cursor.execute(update_fort_sighting_query)
+                    database.commit()
+                    
+                    print("Gym sighting updated. Gym: " + str(gym_id) + " Last Modified: " + str(last_modified) + " Gym Team: " + str(gym_team) + " Guarding Pokemon: " + str(guard_pokemon_id) + " Slots Available: " + str(slots_available))
+                    logging.info("Gym sighting updated. Gym: " + str(gym_id) + " Last Modified: " + str(last_modified) + " Gym Team: " + str(gym_team) + " Guarding Pokemon: " + str(guard_pokemon_id) + " Slots Available: " + str(slots_available))
+                
+                except:
+                    database.rollback()
+            else:
+                try:
+                    database.ping(True)
+                    cursor.execute(insert_fort_sighting_query)
+                    database.commit()
+                    
+                    print("Gym sighting inserted. Gym: " + str(gym_id) + " Last Modified: " + str(last_modified) + " Gym Team: " + str(gym_team) + " Guarding Pokemon: " + str(guard_pokemon_id) + " Slots Available: " + str(slots_available))
+                    logging.info("Gym sighting inserted. Gym: " + str(gym_id) + " Last Modified: " + str(last_modified) + " Gym Team: " + str(gym_team) + " Guarding Pokemon: " + str(guard_pokemon_id) + " Slots Available: " + str(slots_available))
+
+                except:
+                    database.rollback()
 
             print("Message is type: gym")
             logging.info("Message is type: gym")
