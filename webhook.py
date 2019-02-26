@@ -116,8 +116,8 @@ def proces_raid(data):
                         database.ping(True)
                         cursor.execute(fort_sightings_update)
                         database.commit()
-                        print("UPDATED FORT_SIGHTINGS. Gym:" + str(gym_id) + " Boss:" + str(boss_id) + " Team:" + str(gym_team))
-                        logging.info("UPDATED FORT_SIGHTINGS. Gym:" + str(gym_id) + " Boss:" + str(boss_id) + " Team:" + str(gym_team))
+                        print("UPDATED FORT_SIGHTINGS. Gym:" + str(gym_id) + " Team:" + str(gym_team))
+                        logging.info("UPDATED FORT_SIGHTINGS. Gym:" + str(gym_id) + " Team:" + str(gym_team))
                     except:
                         database.rollback()
                         print("UPDATE TO FORT_SIGHTINGS FAILED.")
@@ -130,8 +130,8 @@ def proces_raid(data):
                         database.ping(True)
                         cursor.execute(fort_sightings_insert)
                         database.commit()
-                        print("INSERTED INTO FORT_SIGHTINGS. Gym:" + str(gym_id) + " Boss:" + str(boss_id) + " Team:" + str(gym_team))
-                        logging.info("INSERTED INTO FORT_SIGHTINGS. Gym:" + str(gym_id) + " Boss:" + str(boss_id) + " Team:" + str(gym_team))
+                        print("INSERTED INTO FORT_SIGHTINGS. Gym:" + str(gym_id) + " Team:" + str(gym_team))
+                        logging.info("INSERTED INTO FORT_SIGHTINGS. Gym:" + str(gym_id) + " Team:" + str(gym_team))
                     except:
                         database.rollback()
                         print("INSERT INTO FORT_SIGHTINGS FAILED.")
