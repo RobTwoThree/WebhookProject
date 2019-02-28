@@ -39,8 +39,15 @@ def proces_raid(data):
             boss_cp = data[0]['message']['cp']
             boss_move_1 = data[0]['message']['move_1']
             boss_move_2 = data[0]['message']['move_2']
+        else:
+            boss_cp = "null"
+            boss_move_1 = "null"
+            boss_move_2 = "null"
     else:
         boss_id = 0
+        boss_cp = "null"
+        boss_move_1 = "null"
+        boss_move_2 = "null"
 
     gym_id_query = "SELECT id FROM forts WHERE external_id='" + str(gym_id) + "';"
     database.ping(True)
@@ -49,9 +56,9 @@ def proces_raid(data):
     gym_id_count = cursor.rowcount
     if ( gym_id_count ):
         gym_id = gym_ids[0][0]
-        insert_query = "INSERT INTO raids(id, external_id, fort_id, level, pokemon_id, move_1, move_2, time_spawn, time_battle, time_end, cp) VALUES (null, null, " + str(gym_id) + ", " + str(raid_level) + ", " + str(boss_id) + ", null, null, null, " + str(raid_begin) + ", " + str(raid_end) + ", null);"
+        insert_query = "INSERT INTO raids(id, external_id, fort_id, level, pokemon_id, move_1, move_2, time_spawn, time_battle, time_end, cp) VALUES (null, null, " + str(gym_id) + ", " + str(raid_level) + ", " + str(boss_id) + ", " + str(boss_move_1) + ", " + str(boss_move_2) + ", null, " + str(raid_begin) + ", " + str(raid_end) + ", " + str(boss_cp) + ");"
                 
-        update_query = "UPDATE raids SET pokemon_id='" + str(boss_id) + "' WHERE fort_id='" + str(gym_id)+ "' AND time_end>'" + str(calendar.timegm(current_time.timetuple())) + "';"
+        update_query = "UPDATE raids SET pokemon_id='" + str(boss_id) + "', move_1='" + str(boss_move_1) + "', move_2='" + str(boss_move_2) + "', cp='" + str(boss_cp) + "' WHERE fort_id='" + str(gym_id)+ "' AND time_end>'" + str(calendar.timegm(current_time.timetuple())) + "';"
                 
         existing_raid_check_query = "SELECT id, fort_id, pokemon_id, time_end FROM raids WHERE fort_id='" + str(gym_id) + "' AND time_end>'" + str(calendar.timegm(current_time.timetuple())) + "';"
                 
@@ -83,8 +90,8 @@ def proces_raid(data):
                         database.ping(True)
                         cursor.execute(update_query)
                         database.commit()
-                        print("RAID UPDATED. Old Boss:" + str(raid_data[0][2]) + " New Boss:" + str(boss_id))
-                        logging.info("RAID UPDATED. Old Boss:" + str(raid_data[0][2]) + " New Boss:" + str(boss_id))
+                        print("RAID UPDATED. Old Boss:" + str(raid_data[0][2]) + " New Boss:" + str(boss_id) + " Move 1: " + str(boss_move_1) + " Move 2: " + str(boss_move_2) + " CP: " + str(boss_cp))
+                        logging.info("RAID UPDATED. Old Boss:" + str(raid_data[0][2]) + " New Boss:" + str(boss_id) + " Move 1: " + str(boss_move_1) + " Move 2: " + str(boss_move_2) + " CP: " + str(boss_cp))
                     except:
                         database.rollback()
                         print("RAID UPDATE FAILED.")
