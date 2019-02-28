@@ -52,8 +52,8 @@ def webhook():
                     boss_move_2 = data[0]['message']['move_2']
             else:
                 boss_id = 0
-                boss_move_1 = null
-                boss_move_2 = null
+                boss_move_1 = "null"
+                boss_move_2 = "null"
 
             gym_id_query = "SELECT id FROM forts WHERE external_id='" + str(gym_id) + "';"
             database.ping(True)
