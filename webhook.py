@@ -227,7 +227,7 @@ def process_gym(data):
     gym_lon = data[0]['message']['longitude']
     last_modified = data[0]['message']['last_modified']
 
-    get_gym_id_query = "SELECT id FROM forts WHERE external_id='" + str(external_id) + "'"
+    get_gym_id_query = "SELECT id FROM forts WHERE external_id='" + str(external_id) + "';"
 
     insert_gym_query = "INSERT INTO forts(external_id, lat, lon, name, url) VALUES ('" + str(external_id) + "','" + str(gym_lat) + "','" + str(gym_lon) + "','" + str(gym_name) + "','" + str(gym_url) + "');"
 
@@ -277,7 +277,7 @@ def process_gym(data):
 
     update_fort_sighting_query = "UPDATE fort_sightings SET last_modified='" + str(last_modified) + "', team='" + str(gym_team) + "', guard_pokemon_id='" + str(guard_pokemon_id) +  "', slots_available='" + str(slots_available) + "', updated='" + str(current_epoch_time) + "' WHERE fort_id='" + str(gym_id) + "';"
 
-    fort_sightings_query = "SELECT id, fort_id FROM fort_sightings WHERE fort_id='" + str(gym_id) + "'"
+    fort_sightings_query = "SELECT id, fort_id FROM fort_sightings WHERE fort_id='" + str(gym_id) + "';"
 
     try:
         database.ping(True)
