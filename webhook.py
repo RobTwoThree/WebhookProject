@@ -1,6 +1,7 @@
 import json
 import MySQLdb
 import datetime
+import pytz
 import calendar
 import time
 import logging
@@ -108,8 +109,8 @@ def proces_raid(data):
                     logging.info("INSERT EXECUTED. Gym:" + str(gym_id) + " Raid:" + str(raid_level) + " Boss:" + str(boss_id))
                 except:
                     database.rollback()
-                    print("INSERT FAILED.")
-                    logging.info("INSERT FAILED.")
+                    print("RAID INSERT FAILED.")
+                    logging.info("RAID INSERT FAILED.")
                         
                 #Need to check if fort_id is in fort_sightings. If not, insert as new entry, otherwise update.
                 database.ping(True)
@@ -298,18 +299,19 @@ def process_gym(data):
 
         except:
             database.rollback()
-
-    print("Message is type: gym")
-    logging.info("Message is type: gym")
+            print("GYM INSERT FAILED.")
+            logging.info("GYM INSERT FAILED.")
     
     return 'Gym type was sent and processed.\n', 200
 
 @app.route('/submit', methods=['POST'])
 def webhook():
     if request.method == 'POST':
+        utc_now = pytz.utc.localize(datetime.datetime.utcnow())
+        pst_now = utc_now.astimezone(pytz.timezone("America/Los_Angeles"))
         data = json.loads(request.data)
-        print("MESSAGE: " + str(request.json))
-        logging.info("MESSAGE: " + str(request.json))
+        print("MESSAGE RECEIVED AT " + str(pst_now) + ": " + str(request.json))
+        logging.info("MESSAGE RECEIVED AT " + str(pst_now) + ": " + str(request.json))
         
         if ( DEBUG ):
             print("DEBUG: type=" + str(data[0]['type']))
