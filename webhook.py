@@ -254,7 +254,7 @@ def process_gym(data):
         print("GYM DEBUG: fort_count = " + str(fort_count))
 
     if not ( fort_count ):
-        print("Fort ID was not found. Attempting insert.")
+        print("Fort ID was not found. Attempting to insert new gym.")
 
         try:
             database.ping(True)
@@ -333,8 +333,8 @@ def webhook():
         utc_now = pytz.utc.localize(datetime.datetime.utcnow())
         pst_now = utc_now.astimezone(pytz.timezone("America/Los_Angeles"))
         data = json.loads(request.data)
-        print("MESSAGE RECEIVED AT " + str(pst_now) + ": " + str(request.json))
-        logging.info("MESSAGE RECEIVED AT " + str(pst_now) + ": " + str(request.json))
+        print("MESSAGE RECEIVED AT " + str(pst_now) + ": " + str(request.json) + "\n\n")
+        logging.info("MESSAGE RECEIVED AT " + str(pst_now) + ": " + str(request.json) + "\n\n")
         
         if ( DEBUG ):
             print("DEBUG: type=" + str(data[0]['type']))
