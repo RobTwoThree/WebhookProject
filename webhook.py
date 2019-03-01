@@ -290,6 +290,8 @@ def process_gym(data):
 
     if ( DEBUG ):
         print("GYM DEBUG: fs_count = " + str(fs_count))
+        print("GYM DEBUG: insert_fort_sighting_query = " + str(insert_fort_sighting_query))
+        print("GYM DEBUG: update_fort_sighting_query = " + str(update_fort_sighting_query))
 
     if ( fs_count ):
         try:
