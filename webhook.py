@@ -288,6 +288,8 @@ def process_gym(data):
     except:
         database.rollback()
 
+    if ( DEBUG ):
+        print("GYM DEBUG: fs_count = " + str(fs_count))
 
     if ( fs_count ):
         try:
