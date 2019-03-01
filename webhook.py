@@ -273,6 +273,9 @@ def process_gym(data):
 
     gym_id = fort_data[0][0]
 
+    if ( DEBUG ):
+        print("GYM DEBUG: gym_id = " + str(gym_id))
+
     insert_fort_sighting_query = "INSERT INTO fort_sightings(fort_id, last_modified, team, guard_pokemon_id, slots_available, updated) VALUES ('" + str(gym_id) + "','" + str(last_modified) + "','" + str(gym_team) + "','" + str(guard_pokemon_id) +  "','" + str(slots_available) + "','" + str(current_epoch_time) + "');"
 
     update_fort_sighting_query = "UPDATE fort_sightings SET last_modified='" + str(last_modified) + "', team='" + str(gym_team) + "', guard_pokemon_id='" + str(guard_pokemon_id) +  "', slots_available='" + str(slots_available) + "', updated='" + str(current_epoch_time) + "' WHERE fort_id='" + str(gym_id) + "';"
