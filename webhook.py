@@ -306,8 +306,8 @@ def process_gym(data):
             cursor.execute(update_fort_sighting_query)
             database.commit()
             
-            print("Gym sighting updated. Gym: " + str(gym_id_2) + " Last Modified: " + str(last_modified) + " Gym Team: " + str(gym_team) + " Guarding Pokemon: " + str(guard_pokemon_id) + " Slots Available: " + str(slots_available))
-            logging.info("Gym sighting updated. Gym: " + str(gym_id_2) + " Last Modified: " + str(last_modified) + " Gym Team: " + str(gym_team) + " Guarding Pokemon: " + str(guard_pokemon_id) + " Slots Available: " + str(slots_available))
+            print("Gym sighting updated. Gym: " + str(gym_id_2) + " Last Modified: " + str(last_modified) + " Gym Team: " + str(gym_team) + " Guarding Pokemon: " + str(guard_pokemon_id) + " Slots Available: " + str(slots_available) + "\n")
+            logging.info("Gym sighting updated. Gym: " + str(gym_id_2) + " Last Modified: " + str(last_modified) + " Gym Team: " + str(gym_team) + " Guarding Pokemon: " + str(guard_pokemon_id) + " Slots Available: " + str(slots_available) + "\n")
         
         except:
             database.rollback()
@@ -317,8 +317,8 @@ def process_gym(data):
             cursor.execute(insert_fort_sighting_query)
             database.commit()
             
-            print("Gym sighting inserted. Gym: " + str(gym_id_2) + " Last Modified: " + str(last_modified) + " Gym Team: " + str(gym_team) + " Guarding Pokemon: " + str(guard_pokemon_id) + " Slots Available: " + str(slots_available))
-            logging.info("Gym sighting inserted. Gym: " + str(gym_id_2) + " Last Modified: " + str(last_modified) + " Gym Team: " + str(gym_team) + " Guarding Pokemon: " + str(guard_pokemon_id) + " Slots Available: " + str(slots_available))
+            print("Gym sighting inserted. Gym: " + str(gym_id_2) + " Last Modified: " + str(last_modified) + " Gym Team: " + str(gym_team) + " Guarding Pokemon: " + str(guard_pokemon_id) + " Slots Available: " + str(slots_available) + "\n")
+            logging.info("Gym sighting inserted. Gym: " + str(gym_id_2) + " Last Modified: " + str(last_modified) + " Gym Team: " + str(gym_team) + " Guarding Pokemon: " + str(guard_pokemon_id) + " Slots Available: " + str(slots_available) + "\n")
 
         except:
             database.rollback()
@@ -333,8 +333,8 @@ def webhook():
         utc_now = pytz.utc.localize(datetime.datetime.utcnow())
         pst_now = utc_now.astimezone(pytz.timezone("America/Los_Angeles"))
         data = json.loads(request.data)
-        print("MESSAGE RECEIVED AT " + str(pst_now) + ": " + str(request.json) + "\n")
-        logging.info("MESSAGE RECEIVED AT " + str(pst_now) + ": " + str(request.json) + "\n")
+        print("MESSAGE RECEIVED AT " + str(pst_now) + ": " + str(request.json))
+        logging.info("MESSAGE RECEIVED AT " + str(pst_now) + ": " + str(request.json))
         
         if ( DEBUG ):
             print("DEBUG: type=" + str(data[0]['type']))
