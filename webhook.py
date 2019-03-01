@@ -206,7 +206,11 @@ def process_pokemon(data):
 
 def process_gym(data):
     current_epoch_time = time.time()
-
+    
+    if ( DEBUG ):
+        print("GYM DEBUG: LOADING DATA")
+        logging.debug("GYM DEBUG: LOADING DATA")
+    
     #Load payload data into variables
     raid_active_until = data[0]['message']['raid_active_until']
     external_id = data[0]['message']['gym_id']
@@ -227,6 +231,11 @@ def process_gym(data):
 
     insert_gym_query = "INSERT INTO forts(external_id, lat, lon, name, url) VALUES ('" + str(external_id) + "','" + str(gym_lat) + "','" + str(gym_lon) + "','" + str(gym_name) + "','" + str(gym_url) + "');"
 
+    if ( DEBUG ):
+        print("GYM DEBUG: get_gym_id_query = " + str(get_gym_id_query))
+        logging.debug("GYM DEBUG: get_gym_id_query = " + str(get_gym_id_query))
+        print("GYM DEBUG: insert_gym_query = " + str(insert_gym_query))
+        logging.debug("GYM DEBUG: insert_gym_query = " + str(insert_gym_query))
 
     try:
         database.ping(True)
@@ -236,6 +245,9 @@ def process_gym(data):
         database.commit()
     except:
         database.rollback()
+
+    if ( DEBUG ):
+        print("GYM DEBUG: fort_count = " + str(fort_count))
 
     if not ( fort_count ):
         print("Fort ID was not found. Attempting insert.")
