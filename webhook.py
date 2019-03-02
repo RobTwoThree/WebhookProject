@@ -66,9 +66,9 @@ def proces_raid(data):
         fort_sightings_query = "SELECT id, fort_id, team FROM fort_sightings WHERE fort_id='" + str(gym_id) + "';"
                 
         if ( DEBUG ):
-            print("DEBUG: " + insert_query)
-            print("DEBUG: " + update_query)
-            print("DEBUG: " + existing_raid_check_query)
+            print("RAID DEBUG: " + insert_query)
+            print("RAID DEBUG: " + update_query)
+            print("RAID DEBUG: " + existing_raid_check_query)
             logging.debug(insert_query)
             logging.debug(update_query)
             logging.debug(existing_raid_check_query)
@@ -82,8 +82,8 @@ def proces_raid(data):
             #If raid entry already exists and current boss_id is provided in message, update entry
             if ( raid_count and boss_id != 0 ):
                 if ( DEBUG ):
-                    print("DEBUG: raid_data[0][2] = " + str(raid_data[0][2]))
-                    logging.debug("raid_data[0][2] = " + str(raid_data[0][2]))
+                    print("RAID DEBUG: raid_data[0][2] = " + str(raid_data[0][2]))
+                    logging.debug("RAID DEBUG: raid_data[0][2] = " + str(raid_data[0][2]))
               
                 #If exisiting pokemon_id in table is an egg, update with new boss_id
                 if ( raid_data[0][2] == 0 ):
@@ -91,12 +91,12 @@ def proces_raid(data):
                         database.ping(True)
                         cursor.execute(update_query)
                         database.commit()
-                        print("RAID UPDATED. Old Boss:" + str(raid_data[0][2]) + " New Boss:" + str(boss_id) + " Move 1: " + str(boss_move_1) + " Move 2: " + str(boss_move_2) + " CP: " + str(boss_cp))
-                        logging.info("RAID UPDATED. Old Boss:" + str(raid_data[0][2]) + " New Boss:" + str(boss_id) + " Move 1: " + str(boss_move_1) + " Move 2: " + str(boss_move_2) + " CP: " + str(boss_cp))
+                        print("RAID UPDATED. Old Boss:" + str(raid_data[0][2]) + " New Boss:" + str(boss_id) + " Move 1: " + str(boss_move_1) + " Move 2: " + str(boss_move_2) + " CP: " + str(boss_cp) + "\n")
+                        logging.info("RAID UPDATED. Old Boss:" + str(raid_data[0][2]) + " New Boss:" + str(boss_id) + " Move 1: " + str(boss_move_1) + " Move 2: " + str(boss_move_2) + " CP: " + str(boss_cp) + "\n")
                     except:
                         database.rollback()
-                        print("RAID UPDATE FAILED.")
-                        logging.info("RAID UPDATE FAILED.")
+                        print("RAID UPDATE FAILED.\n")
+                        logging.info("RAID UPDATE FAILED.\n")
                 else:
                     pass
                 return 'Duplicate webhook message was ignored.\n', 200
@@ -105,8 +105,8 @@ def proces_raid(data):
                     database.ping(True)
                     cursor.execute(insert_query)
                     database.commit()
-                    print("INSERT EXECUTED. Gym:" + str(gym_id) + " Raid:" + str(raid_level) + " Boss:" + str(boss_id))
-                    logging.info("INSERT EXECUTED. Gym:" + str(gym_id) + " Raid:" + str(raid_level) + " Boss:" + str(boss_id))
+                    print("RAID INSERT EXECUTED. Gym:" + str(gym_id) + " Raid:" + str(raid_level) + " Boss:" + str(boss_id))
+                    logging.info("RAID INSERT EXECUTED. Gym:" + str(gym_id) + " Raid:" + str(raid_level) + " Boss:" + str(boss_id))
                 except:
                     database.rollback()
                     print("RAID INSERT FAILED.")
@@ -124,12 +124,12 @@ def proces_raid(data):
                         database.ping(True)
                         cursor.execute(fort_sightings_update)
                         database.commit()
-                        print("UPDATED FORT_SIGHTINGS. Gym:" + str(gym_id) + " Team:" + str(gym_team))
-                        logging.info("UPDATED FORT_SIGHTINGS. Gym:" + str(gym_id) + " Team:" + str(gym_team))
+                        print("RAID UPDATED FORT_SIGHTINGS. Gym:" + str(gym_id) + " Team:" + str(gym_team) + "\n")
+                        logging.info("RAID UPDATED FORT_SIGHTINGS. Gym:" + str(gym_id) + " Team:" + str(gym_team) + "\n")
                     except:
                         database.rollback()
-                        print("UPDATE TO FORT_SIGHTINGS FAILED.")
-                        logging.info("UPDATE TO FORT_SIGHTINGS FAILED.")
+                        print("RAID UPDATE TO FORT_SIGHTINGS FAILED.\n")
+                        logging.info("RAID UPDATE TO FORT_SIGHTINGS FAILED.\n")
 
                 else:
                     fort_sightings_insert = "INSERT INTO fort_sightings(fort_id, team, last_modified) VALUES (" + str(gym_id) + ", " + str(gym_team) + ", " + str(calendar.timegm(current_time.timetuple())) + ");"
@@ -138,69 +138,80 @@ def proces_raid(data):
                         database.ping(True)
                         cursor.execute(fort_sightings_insert)
                         database.commit()
-                        print("INSERTED INTO FORT_SIGHTINGS. Gym:" + str(gym_id) + " Team:" + str(gym_team))
-                        logging.info("INSERTED INTO FORT_SIGHTINGS. Gym:" + str(gym_id) + " Team:" + str(gym_team))
+                        print("RAID INSERTED INTO FORT_SIGHTINGS. Gym:" + str(gym_id) + " Team:" + str(gym_team) + "\n")
+                        logging.info("RAID INSERTED INTO FORT_SIGHTINGS. Gym:" + str(gym_id) + " Team:" + str(gym_team) + "\n")
                     except:
                         database.rollback()
-                        print("INSERT INTO FORT_SIGHTINGS FAILED.")
-                        logging.info("INSERT INTO FORT_SIGHTINGS FAILED.")
+                        print("RAID INSERT INTO FORT_SIGHTINGS FAILED.\n")
+                        logging.info("RAID INSERT INTO FORT_SIGHTINGS FAILED.\n")
 
                 return 'Raid type was sent and processed.\n', 200
         except:
             database.rollback()
             print("EXISTING RAID QUERY FAILED")
     else:
-        print("Gym ID Not Found.")
-        logging.info("Gym ID Not Found.")
+        print("RAID Gym ID Not Found.")
+        logging.info("RAID Gym ID Not Found.")
                 
         add_gym_query = "INSERT INTO forts(external_id, lat, lon, name, url) VALUES('" + str(gym_id) + "', " +  str(gym_lat) + ", " + str(gym_lon) + ", '" + str(gym_name) + "', '" + str(gym_url) + "');"
                 
         if ( DEBUG ):
-            print("DEBUG: " + str(add_gym_query))
-            logging.debug(str(add_gym_query))
+            print("RAID DEBUG: add_gym_query = " + str(add_gym_query))
+            logging.debug("RAID DEBUG: add_gym_query = " + str(add_gym_query))
                 
         try:
             database.ping(True)
             cursor.execute(add_gym_query)
             database.commit()
-            print("GYM ADDED. Gym:" + str(gym_id) + " Lat:" + str(gym_lat) + " Lon:" + str(gym_lon) + " Name:" + str(gym_name) + " URL:" + str(gym_url))
-            logging.info("GYM ADDED. Gym:" + str(gym_id) + " Lat:" + str(gym_lat) + " Lon:" + str(gym_lon) + " Name:" + str(gym_name) + " URL:" + str(gym_url))
+            print("RAID GYM ADDED. Gym:" + str(gym_id) + " Lat:" + str(gym_lat) + " Lon:" + str(gym_lon) + " Name:" + str(gym_name) + " URL:" + str(gym_url) + "\n")
+            logging.info("RAID GYM ADDED. Gym:" + str(gym_id) + " Lat:" + str(gym_lat) + " Lon:" + str(gym_lon) + " Name:" + str(gym_name) + " URL:" + str(gym_url) + "\n")
             return 'Unknown gym. Insert successful.\n', 200
         except:
             database.rollback()
-            print("GYM INSERT FAILED.")
-            logging.info("GYM INSERT FAILED.")
+            print("RAID GYM INSERT FAILED.\n")
+            logging.info("RAID GYM INSERT FAILED.\n")
             return 'Unknown gym. Insert failed.\n', 500
 
 def process_pokemon(data):
     current_time = datetime.datetime.utcnow()
 
     #Load payload data into variables
-    disappear_time = data[0]['disappear_time']
-    encounter_id = data[0]['encounter_id']
-    last_modified_time = data[0]['last_modified_time']
-    latitude = data[0]['latitude']
-    longitude = data[0]['longitude']
-    pokemon_id = data[0]['pokemon_id']
-    spawnpoint_id = data[0]['spawnpoint_id']
-    time_until_hidden_ms = data[0]['time_until_hidden_ms']
+    if 'gender' in data[0]['message']:
+        gender = data[0]['message']['gender']
+    else:
+        gender = 0
+    if 'form' in data[0]['message']:
+        form = data[0]['message']['form']
+    else:
+        form = 0
+    if 'boosted_weather' in data[0]['message']:
+        boosted_weather = data[0]['message']['boosted_weather']
+    else:
+        boosted_weather = 0
+    disappear_time = data[0]['message']['disappear_time']
+    encounter_id = data[0]['message']['encounter_id']
+    last_modified_time = data[0]['message']['last_modified_time']
+    latitude = data[0]['message']['latitude']
+    longitude = data[0]['message']['longitude']
+    pokemon_id = data[0]['message']['pokemon_id']
+    spawnpoint_id = data[0]['message']['spawnpoint_id']
+    time_until_hidden_ms = data[0]['message']['time_until_hidden_ms']
 
-    pokemon_insert_query = "INSERT INTO sightings(pokemon_id, spawn_id, expire_timestamp, encounter_id, lat, lon) VALUES(" + str(pokemon_id) + ", " + str(spawnpoint_id) + ", " + str(disappear_time) + ", " + str(encounter_id) + ", " + str(latitude) + ", " + str(longitude) + ");"
+    pokemon_insert_query = "INSERT INTO sightings(pokemon_id, gender, form, weather_boosted_condition, spawn_id, expire_timestamp, encounter_id, lat, lon) VALUES(" + str(pokemon_id) + ", " + str(gender) + ", " + str(form) + ", " + str(boosted_weather) + ", " + str(spawnpoint_id) + ", " + str(disappear_time) + ", " + str(encounter_id) + ", " + str(latitude) + ", " + str(longitude) + ");"
 
     if ( DEBUG ):
-        print("DEBUG: " + str(pokemon_insert_query))
-        logging.debug(str(pokemon_insert_query))
+        print("POKEMON DEBUG: " + str(pokemon_insert_query))
+        logging.debug("POKEMON DEBUG: " + str(pokemon_insert_query))
     try:
         database.ping(True)
         cursor.execute(pokemon_insert_query)
         database.commit()
-        print("POKEMON ADDED. Pokemon ID:" + str(pokemon_id) + " Lat:" + str(latitude) + " Lon:" + str(longitude))
-        logging.info("POKEMON ADDED. Pokemon ID:" + str(pokemon_id) + " Lat:" + str(latitude) + " Lon:" + str(longitude))
-        return 'Pokemon insert successful.\n', 200
+        print("POKEMON ADDED. Pokemon ID:" + str(pokemon_id) + " Lat:" + str(latitude) + " Lon:" + str(longitude) + "\n")
+        logging.info("POKEMON ADDED. Pokemon ID:" + str(pokemon_id) + " Lat:" + str(latitude) + " Lon:" + str(longitude) + "\n")
     except:
         database.rollback()
-        print("POKEMON INSERT FAILED.")
-        logging.info("POKEMON INSERT FAILED.")
+        print("POKEMON INSERT FAILED.\n")
+        logging.info("POKEMON INSERT FAILED.\n")
       
     return 'Pokemon type was sent and processed.\n', 200
 
@@ -261,8 +272,8 @@ def process_gym(data):
             cursor.execute(insert_gym_query)
             database.commit()
         
-            print("New gym added. External ID: " + str(external_id) + " Lat: " + str(gym_lat) + " Lon: " + str(gym_lon) + " Name: " + str(gym_name) + " URL: " + str(gym_url))
-            logging.info("GYM ADDED. External ID: " + str(external_id) + " Lat: " + str(gym_lat) + " Lon: " + str(gym_lon) + " Name: " + str(gym_name) + " URL: " + str(gym_url))
+            print("New gym added. External ID: " + str(external_id) + " Lat: " + str(gym_lat) + " Lon: " + str(gym_lon) + " Name: " + str(gym_name) + " URL: " + str(gym_url) + "\n")
+            logging.info("GYM ADDED. External ID: " + str(external_id) + " Lat: " + str(gym_lat) + " Lon: " + str(gym_lon) + " Name: " + str(gym_name) + " URL: " + str(gym_url) + "\n")
         except:
             database.rollback()
 
@@ -337,8 +348,8 @@ def webhook():
         logging.info("MESSAGE RECEIVED AT " + str(pst_now) + ": " + str(request.json))
         
         if ( DEBUG ):
-            print("DEBUG: type=" + str(data[0]['type']))
-            logging.debug("type=" + str(data[0]['type']))
+            print("MAIN DEBUG: type=" + str(data[0]['type']))
+            logging.debug("MAIN DEBUG: type=" + str(data[0]['type']))
         
         message_type = data[0]['type']
         
