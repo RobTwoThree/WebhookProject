@@ -333,10 +333,154 @@ def process_gym(data):
 
         except:
             database.rollback()
-            print("GYM INSERT FAILED.")
-            logging.info("GYM INSERT FAILED.")
+            print("GYM INSERT FAILED. Gym:" + str(gym_id_2) + "\n")
+            logging.info("GYM INSERT FAILED. Gym: " + str(gym_id_2) + "\n")
     
     return 'Gym type was sent and processed.\n', 200
+
+def process_quest(data):
+    if ( DEBUG ):
+        print("QUEST DEBUG: LOADING DATA")
+        logging.debug("QUEST DEBUG: LOADING DATA")
+    
+    #Load payload data into variables
+    external_id = data[0]['message']['pokestop_id']
+    latitude = data[0]['message']['latitude']
+    longitude = data[0]['message']['longitude']
+    quest_type = data[0]['message']['quest_type']
+    quest_type_raw = data[0]['message']['quest_type_raw']
+    item_type = data[0]['message']['item_type']
+    item_amount = data[0]['message']['item_amount']
+    item_id = data[0]['message']['item_id']
+    pokemon_id = data[0]['message']['pokemon_id']
+    name = data[0]['message']['name']
+    url = data[0]['message']['url']
+    timestamp = data[0]['message']['timestamp']
+    quest_reward_type = data[0]['message']['quest_reward_type']
+    quest_reward_type_raw = data[0]['message']['quest_reward_type_raw']
+    quest_target = data[0]['message']['quest_target']
+    quest_task = data[0]['message']['quest_task']
+    quest_condition = data[0]['message']['quest_condition']
+
+    if len(quest_condition) != 0:
+        if 'type' in quest_condition[0]:
+            qc_type = quest_condition[0]['type']
+        else:
+            qc_type = 0
+
+        if 'with_pokemon_type' in quest_condition[0]:
+            qc_type_with_pokemon_type = quest_condition[0]['with_pokemon_type']
+
+            if len(qc_type_with_pokemon_type) != 0:
+                qc_type_with_pokemon_type_pokemon_type = qc_type_with_pokemon_type['pokemon_type']
+            else:
+                qc_type_with_pokemon_type_pokemon_type = 0
+        else:
+            qc_type_with_pokemon_type = 0
+            
+    else:
+        qc_type = 0
+        qc_type_with_pokemon_type = 0
+        qc_type_with_pokemon_type_pokemon_type = 0
+
+    if ( DEBUG ):
+        print("QUEST DEBUG: quest_condition = " + str(quest_condition))
+        print("QUEST DEBUG: qc_type = " + str(qc_type))
+        print("QUEST DEBUG: qc_type_with_pokemon_type = " + str(qc_type_with_pokemon_type))
+        print("QUEST DEBUG: qc_type_with_pokemon_type_pokemon_type = " + str(qc_type_with_pokemon_type_pokemon_type))
+        for ids in range(len(qc_type_with_pokemon_type['pokemon_type'])):
+            print("QUEST DEBUG: qc_type_with_pokemon_type_pokemon_type[" + str(ids) + "]: " + str(qc_type_with_pokemon_type_pokemon_type[ids]))
+
+    get_pokestop_id_query = "SELECT id FROM pokestops WHERE external_id='" + str(external_id) + "';"
+
+    insert_pokestop_query = "INSERT INTO pokestops(external_id, lat, lon, name, url, updated) VALUES ('" + str(external_id) + "', '" + str(latitude) + "', '" + str(longitude) + "', '" + str(name) + "', '" + str(url) + "', '" + str(timestamp) + "');"
+
+    if ( DEBUG ):
+        print("QUEST DEBUG: get_pokestop_id_query = " + str(get_pokestop_id_query))
+        print("QUEST DEBUG: insert_pokestop_query = " + str(insert_pokestop_query))
+
+    #Check if pokestop exists, if not insert new one
+    try:
+        database.ping(True)
+        cursor.execute(get_pokestop_id_query)
+        ps_count = cursor.rowcount
+
+        database.commit()
+    except:
+        database.rollback()
+
+    if not ( ps_count ):
+        print ("POKESTOP NOT FOUND. Inserting new pokestop: " + str(name) + " Lat: " + str(latitude) + " Lon: " + str(longitude))
+        
+        try:
+            database.ping(True)
+            cursor.execute(insert_pokestop_query)
+            database.commit()
+        except:
+            database.rollback()
+ 
+    #Get pokestop_id now
+    try:
+        database.ping(True)
+        cursor.execute(get_pokestop_id_query)
+        ps_data = cursor.fetchall()
+    
+        database.commit()
+    except:
+        database.rollback()
+
+    pokestop_id = ps_data[0][0];
+
+    insert_quest_query = "INSERT INTO quests(pokestop_id, quest_type, quest_type_raw, item_type, item_amount, item_id, pokemon_id, quest_reward_type, quest_reward_type_raw, quest_target, quest_task, qc_type, qc_type_with_pokemon_pokemon_type) VALUES ('" + str(pokestop_id) + "', '" + str(quest_type) + "', '" + str(quest_type_raw) + "', '" + str(item_type) + "', '" + str(item_amount) + "', '" + str(item_id) + "', '" + str(pokemon_id) + "', '" + str(quest_reward_type) + "', '" + str(quest_reward_type_raw) + "', '" + str(quest_target) + "', '" + str(quest_task) + "', '" + str(qc_type) + "', '" + str(qc_type_with_pokemon_type_pokemon_type) + "');"
+
+    update_quest_query = "UPDATE quests SET quest_type='" + str(quest_type) + "', quest_type_raw='" + str(quest_type_raw) + "', item_type='" + str(item_type) + "', item_amount='" + str(item_amount) + "', item_id='" + str(item_id) + "', pokemon_id='" + str(pokemon_id) + "', quest_reward_type='" + str(quest_reward_type) + "', quest_reward_type_raw='" + str(quest_reward_type_raw) + "', quest_target='" + str(quest_target) + "', quest_task='" + str(quest_task) + "', qc_type='" + str(qc_type) + "', qc_type_with_pokemon_pokemon_type='" + str(qc_type_with_pokemon_type_pokemon_type) + "' WHERE pokestop_id='" + str(pokestop_id) + "';"
+
+    quests_query = "SELECT id, pokestop_id FROM quests WHERE pokestop_id='" + str(pokestop_id) + "';"
+
+    if ( DEBUG ):
+        print("QUEST DEBUG: insert_quest_query = " + str(insert_quest_query))
+        print("QUEST DEBUG: update_quest_query = " + str(update_quest_query))
+        print("QUEST DEBUG: quests_query = " + str(quests_query))
+
+    #Check if quest entry exists
+    try:
+        database.ping(True)
+        cursor.execute(quests_query)
+        ps_count = cursor.rowcount
+        database.commit()
+    except:
+        database.rollback()
+
+    #If quest entry exists, update the entry, otherwise, insert new quest
+    if ( ps_count ):
+        try:
+            database.ping(True)
+            cursor.execute(update_quest_query)
+            database.commit()
+
+            print("QUEST UPDATED. Quest: " + str(quest_type) + ". Pokestop ID: " + str(pokestop_id) + "\n")
+            logging.info("QUEST UPDATED. Quest: " + str(quest_type) + ". Pokestop ID: " + str(pokestop_id) + "\n")
+        except:
+            database.rollback()
+            
+            print("QUEST UPDATE FAILED. Quest: " + str(quest_type) + " Pokestop ID: " + str(pokestop_id) + "\n")
+            logging.info("QUEST UPDATE FAILED. Quest: " + str(quest_type) + " Pokestop ID: " + str(pokestop_id) + "\n")
+    else:
+        try:
+            database.ping(True)
+            cursor.execute(insert_quest_query)
+            database.commit()
+
+            print("QUEST INSERTED. Quest: " + str(quest_type) + ". Pokestop ID: " + str(pokestop_id) + "\n")
+            logging.info("QUEST INSERTED. Quest: " + str(quest_type) + ". Pokestop ID: " + str(pokestop_id) + "\n")
+        except:
+            database.rollback()
+            
+            print("QUEST INSERT FAILED. Quest: " + str(quest_type) + " Pokestop ID: " + str(pokestop_id) + "\n")
+            logging.info("QUEST INSERT FAILED. Quest: " + str(quest_type) + " Pokestop ID: " + str(pokestop_id) + "\n")
+
+
+    return 'Quest type was sent and processed.\n', 200
 
 @app.route('/submit', methods=['POST'])
 def webhook():
@@ -363,6 +507,10 @@ def webhook():
 
         if message_type == "gym":
             result = process_gym(data)
+            return result
+
+        if message_type == "quest":
+            result = process_quest(data)
             return result
     else:
         abort(400)
