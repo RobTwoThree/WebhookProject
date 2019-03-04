@@ -404,9 +404,9 @@ def process_quest(data):
     if ( DEBUG ):
         print("QUEST DEBUG: quest_condition = " + str(quest_condition))
         print("QUEST DEBUG: qc_type = " + str(qc_type))
-        print("QUEST DEBUG: qc_type_with_pokemon_type = " + str(qc_type_with_pokemon_type))
-        print("QUEST DEBUG: qc_type_with_pokemon_type_pokemon_type = " + str(qc_type_with_pokemon_type_pokemon_type))
         if len(quest_condition) != 0:
+            print("QUEST DEBUG: qc_type_with_pokemon_type = " + str(qc_type_with_pokemon_type))
+            print("QUEST DEBUG: qc_type_with_pokemon_type_pokemon_type = " + str(qc_type_with_pokemon_type_pokemon_type))
             for ids in range(len(qc_type_with_pokemon_type['pokemon_type'])):
                 print("QUEST DEBUG: qc_type_with_pokemon_type_pokemon_type[" + str(ids) + "]: " + str(qc_type_with_pokemon_type_pokemon_type[ids]))
 
