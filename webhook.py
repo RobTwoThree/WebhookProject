@@ -380,35 +380,9 @@ def process_quest(data):
     quest_task = data[0]['message']['quest_task']
     quest_condition = data[0]['message']['quest_condition']
 
-    if len(quest_condition) != 0:
-        if 'type' in quest_condition[0]:
-            qc_type = quest_condition[0]['type']
-        else:
-            qc_type = 0
-
-        if 'with_pokemon_type' in quest_condition[0]:
-            qc_type_with_pokemon_type = quest_condition[0]['with_pokemon_type']
-
-            if len(qc_type_with_pokemon_type) != 0:
-                qc_type_with_pokemon_type_pokemon_type = qc_type_with_pokemon_type['pokemon_type']
-            else:
-                qc_type_with_pokemon_type_pokemon_type = 0
-        else:
-            qc_type_with_pokemon_type = 0
-            
-    else:
-        qc_type = 0
-        qc_type_with_pokemon_type = 0
-        qc_type_with_pokemon_type_pokemon_type = 0
 
     if ( DEBUG ):
         print("QUEST DEBUG: quest_condition = " + str(quest_condition))
-        print("QUEST DEBUG: qc_type = " + str(qc_type))
-        if len(quest_condition) != 0:
-            print("QUEST DEBUG: qc_type_with_pokemon_type = " + str(qc_type_with_pokemon_type))
-            #print("QUEST DEBUG: qc_type_with_pokemon_type_pokemon_type = " + str(qc_type_with_pokemon_type_pokemon_type))
-            for ids in range(len(qc_type_with_pokemon_type['pokemon_type'])):
-                print("QUEST DEBUG: qc_type_with_pokemon_type_pokemon_type[" + str(ids) + "]: " + str(qc_type_with_pokemon_type_pokemon_type[ids]))
 
     get_pokestop_id_query = "SELECT id FROM pokestops WHERE external_id='" + str(external_id) + "';"
 
@@ -450,9 +424,9 @@ def process_quest(data):
 
     pokestop_id = ps_data[0][0];
 
-    insert_quest_query = "INSERT INTO quests(pokestop_id, quest_type, quest_type_raw, item_type, item_amount, item_id, pokemon_id, quest_reward_type, quest_reward_type_raw, quest_target, quest_task, qc_type, qc_type_with_pokemon_pokemon_type) VALUES ('" + str(pokestop_id) + "', '" + str(quest_type) + "', '" + str(quest_type_raw) + "', '" + str(item_type) + "', '" + str(item_amount) + "', '" + str(item_id) + "', '" + str(pokemon_id) + "', '" + str(quest_reward_type) + "', '" + str(quest_reward_type_raw) + "', '" + str(quest_target) + "', '" + str(quest_task) + "', '" + str(qc_type) + "', '" + str(qc_type_with_pokemon_type_pokemon_type) + "');"
+    insert_quest_query = "INSERT INTO quests(pokestop_id, quest_type, quest_type_raw, item_type, item_amount, item_id, pokemon_id, quest_reward_type, quest_reward_type_raw, quest_target, quest_task, quest_condition) VALUES ('" + str(pokestop_id) + "', '" + str(quest_type) + "', '" + str(quest_type_raw) + "', '" + str(item_type) + "', '" + str(item_amount) + "', '" + str(item_id) + "', '" + str(pokemon_id) + "', '" + str(quest_reward_type) + "', '" + str(quest_reward_type_raw) + "', '" + str(quest_target) + "', '" + str(quest_task) + "', \"" + str(quest_condition) + "\");"
 
-    update_quest_query = "UPDATE quests SET quest_type='" + str(quest_type) + "', quest_type_raw='" + str(quest_type_raw) + "', item_type='" + str(item_type) + "', item_amount='" + str(item_amount) + "', item_id='" + str(item_id) + "', pokemon_id='" + str(pokemon_id) + "', quest_reward_type='" + str(quest_reward_type) + "', quest_reward_type_raw='" + str(quest_reward_type_raw) + "', quest_target='" + str(quest_target) + "', quest_task='" + str(quest_task) + "', qc_type='" + str(qc_type) + "', qc_type_with_pokemon_pokemon_type='" + str(qc_type_with_pokemon_type_pokemon_type) + "' WHERE pokestop_id='" + str(pokestop_id) + "';"
+    update_quest_query = "UPDATE quests SET quest_type='" + str(quest_type) + "', quest_type_raw='" + str(quest_type_raw) + "', item_type='" + str(item_type) + "', item_amount='" + str(item_amount) + "', item_id='" + str(item_id) + "', pokemon_id='" + str(pokemon_id) + "', quest_reward_type='" + str(quest_reward_type) + "', quest_reward_type_raw='" + str(quest_reward_type_raw) + "', quest_target='" + str(quest_target) + "', quest_task='" + str(quest_task) + "', quest_condition=\"" + str(quest_condition) + "\" WHERE pokestop_id='" + str(pokestop_id) + "';"
 
     quests_query = "SELECT id, pokestop_id FROM quests WHERE pokestop_id='" + str(pokestop_id) + "';"
 
