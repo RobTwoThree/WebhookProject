@@ -199,20 +199,38 @@ def process_pokemon(data):
 
     pokemon_insert_query = "INSERT INTO sightings(pokemon_id, gender, form, weather_boosted_condition, spawn_id, expire_timestamp, encounter_id, lat, lon) VALUES(" + str(pokemon_id) + ", " + str(gender) + ", " + str(form) + ", " + str(boosted_weather) + ", " + str(spawnpoint_id) + ", " + str(disappear_time) + ", " + str(encounter_id) + ", " + str(latitude) + ", " + str(longitude) + ");"
 
+    encounter_id_query = "SELECT encounter_id FROM sightings WHERE encounter_id='" + str(encounter_id) + "';"
+
     if ( DEBUG ):
         print("POKEMON DEBUG: " + str(pokemon_insert_query))
         logging.debug("POKEMON DEBUG: " + str(pokemon_insert_query))
+        print("POKEMON DEBUG: " + str(encounter_id_query))
+        logging.debug("POKEMON DEBUG: " + str(encounter_id_query))
+
+    #Check to see if encounter_id already exists in sightings
     try:
         database.ping(True)
-        cursor.execute(pokemon_insert_query)
+        cursor.execute(encounter_id_query)
+        encounter_id_count = cursor.rowcount
         database.commit()
-        print("POKEMON ADDED. Pokemon ID:" + str(pokemon_id) + " Lat:" + str(latitude) + " Lon:" + str(longitude) + "\n")
-        logging.info("POKEMON ADDED. Pokemon ID:" + str(pokemon_id) + " Lat:" + str(latitude) + " Lon:" + str(longitude) + "\n")
     except:
         database.rollback()
-        print("POKEMON INSERT FAILED.\n")
-        logging.info("POKEMON INSERT FAILED.\n")
-      
+
+    if not ( encounter_id_count ):
+        try:
+            database.ping(True)
+            cursor.execute(pokemon_insert_query)
+            database.commit()
+            print("POKEMON ADDED. Pokemon ID:" + str(pokemon_id) + " Lat:" + str(latitude) + " Lon:" + str(longitude) + "\n")
+            logging.info("POKEMON ADDED. Pokemon ID:" + str(pokemon_id) + " Lat:" + str(latitude) + " Lon:" + str(longitude) + "\n")
+        except:
+            database.rollback()
+            print("POKEMON INSERT FAILED.\n")
+            logging.info("POKEMON INSERT FAILED.\n")
+    else:
+        print("DUPLICATE POKEMON MESSAGE. IGNORED.\n")
+        logging.info("DUPLICATE POKEMON MESSAGE. IGNORED.\n")
+
     return 'Pokemon type was sent and processed.\n', 200
 
 def process_gym(data):
