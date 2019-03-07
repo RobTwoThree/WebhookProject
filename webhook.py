@@ -520,11 +520,14 @@ def webhook():
         utc_now = pytz.utc.localize(datetime.datetime.utcnow())
         pst_now = utc_now.astimezone(pytz.timezone("America/Los_Angeles"))
         data = json.loads(request.data)
-        print("MESSAGE RECEIVED AT " + str(pst_now) + ": " + str(request.json))
-        logging.info("MESSAGE RECEIVED AT " + str(pst_now) + ": " + str(request.json))
         
         if ( MAIN_DEBUG ):
+            print("MESSAGE RECEIVED AT " + str(pst_now) + ": " + str(request.json))
+            logging.info("MESSAGE RECEIVED AT " + str(pst_now) + ": " + str(request.json))
             print("MAIN DEBUG: type=" + str(data[0]['type']))
+            logging.debug("MAIN DEBUG: type=" + str(data[0]['type']))
+        else:
+            print("RECEIVED: type=" + str(data[0]['type']))
             logging.debug("MAIN DEBUG: type=" + str(data[0]['type']))
         
         message_type = data[0]['type']
