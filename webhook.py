@@ -557,7 +557,7 @@ def webhook():
         message_type = data[0]['type']
 
         for msg in data:
-            if ( MAIN_DEBUG ):
+            #if ( MAIN_DEBUG ):
                 #print("MESSAGE TYPE = " + str(msg['type']))
                 #logging.info("MESSAGE TYPE = " + str(msg['type']))
         
