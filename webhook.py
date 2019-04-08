@@ -55,6 +55,8 @@ def proces_raid(data):
     cursor.execute(gym_id_query)
     gym_ids = cursor.fetchall()
     gym_id_count = cursor.rowcount
+    database.commit()
+
     if ( gym_id_count ):
         gym_id = gym_ids[0][0]
         insert_query = "INSERT INTO raids(id, external_id, fort_id, level, pokemon_id, move_1, move_2, time_spawn, time_battle, time_end, cp) VALUES (null, null, " + str(gym_id) + ", " + str(raid_level) + ", " + str(boss_id) + ", " + str(boss_move_1) + ", " + str(boss_move_2) + ", null, " + str(raid_begin) + ", " + str(raid_end) + ", " + str(boss_cp) + ");"
@@ -62,23 +64,34 @@ def proces_raid(data):
         update_query = "UPDATE raids SET pokemon_id='" + str(boss_id) + "', move_1='" + str(boss_move_1) + "', move_2='" + str(boss_move_2) + "', cp='" + str(boss_cp) + "' WHERE fort_id='" + str(gym_id)+ "' AND time_end>'" + str(calendar.timegm(current_time.timetuple())) + "';"
                 
         existing_raid_check_query = "SELECT id, fort_id, pokemon_id, time_end FROM raids WHERE fort_id='" + str(gym_id) + "' AND time_end>'" + str(calendar.timegm(current_time.timetuple())) + "';"
-                
+        #existing_raid_check_query = "SELECT id, fort_id, pokemon_id, time_end FROM raids WHERE fort_id='" + str(gym_id) + "' AND time_end>'1554537220';"
+        
         fort_sightings_query = "SELECT id, fort_id, team FROM fort_sightings WHERE fort_id='" + str(gym_id) + "';"
                 
         if ( RAID_DEBUG ):
-            print("RAID DEBUG: " + insert_query)
-            print("RAID DEBUG: " + update_query)
-            print("RAID DEBUG: " + existing_raid_check_query)
+            print("RAID DEBUG: insert_query = " + insert_query)
+            print("RAID DEBUG: update_query = " + update_query)
+            print("RAID DEBUG: existing_raid_check_query = " + existing_raid_check_query)
+            print("RAID DEBUG: fort_sightings_query = " + fort_sightings_query)
             logging.debug(insert_query)
             logging.debug(update_query)
             logging.debug(existing_raid_check_query)
+            logging.debug(fort_sightings_query)
                 
         try:
             database.ping(True)
             cursor.execute(existing_raid_check_query)
             raid_data = cursor.fetchall()
             raid_count = cursor.rowcount
-                    
+            database.commit()
+
+            if ( RAID_DEBUG ):
+                print("RAID DEBUG: raid_count = " + str(raid_count))
+                logging.debug("RAID DEBUG: raid_count = " + str(raid_count))
+                print("RAID DEBUG: boss_id = " + str(boss_id))
+                logging.debug("RAID DEBUG: boss_id = " + str(boss_id))
+            
+
             #If raid entry already exists and current boss_id is provided in message, update entry
             if ( raid_count and boss_id != 0 ):
                 if ( RAID_DEBUG ):
@@ -102,6 +115,9 @@ def proces_raid(data):
                             print("RAID UPDATE FAILED.\n")
                             logging.info("RAID UPDATE FAILED.\n")
                 else:
+                    if ( RAID_DEBUG ):
+                        print("DUPLICATE RAID. IGNORED.\n")
+                        logging.info("DUPLICATE RAID. IGNORED.\n")
                     pass
                 return 'Duplicate webhook message was ignored.\n', 200
             else:
@@ -541,9 +557,13 @@ def webhook():
         message_type = data[0]['type']
 
         for msg in data:
-            print("type = " + str(msg['type']))
+            if ( MAIN_DEBUG ):
+                #print("MESSAGE TYPE = " + str(msg['type']))
+                #logging.info("MESSAGE TYPE = " + str(msg['type']))
         
             if msg['type'] == "raid":
+                if ( MAIN_DEBUG ):
+                    print("MESSAGE TYPE = " + str(msg['type']) + ", gym_id = " + str(msg['message']['gym_id']) + ", level = " + str(msg['message']['level']) + ", start = " + str(msg['message']['start']) + ", end = " + str(msg['message']['end']))
                 result = proces_raid(msg)
                 #return result
 
