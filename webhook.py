@@ -23,23 +23,23 @@ def proces_raid(data):
     current_time = datetime.datetime.utcnow()
 
     #Load payload data into variables
-    gym_name = data[0]['message']['name']
-    gym_id = data[0]['message']['gym_id']
-    gym_lat = data[0]['message']['latitude']
-    gym_lon = data[0]['message']['longitude']
-    gym_url = data[0]['message']['url']
-    gym_team = data[0]['message']['team_id']
-    raid_level = data[0]['message']['level']
-    raid_begin = data[0]['message']['start']
-    raid_end = data[0]['message']['end']
+    gym_name = data['message']['name']
+    gym_id = data['message']['gym_id']
+    gym_lat = data['message']['latitude']
+    gym_lon = data['message']['longitude']
+    gym_url = data['message']['url']
+    gym_team = data['message']['team_id']
+    raid_level = data['message']['level']
+    raid_begin = data['message']['start']
+    raid_end = data['message']['end']
         
     #Check if message has pokemon_id sent. If not, its an egg
-    if 'pokemon_id' in data[0]['message']:
-        boss_id = data[0]['message']['pokemon_id']
+    if 'pokemon_id' in data['message']:
+        boss_id = data['message']['pokemon_id']
         if boss_id != 0:
-            boss_cp = data[0]['message']['cp']
-            boss_move_1 = data[0]['message']['move_1']
-            boss_move_2 = data[0]['message']['move_2']
+            boss_cp = data['message']['cp']
+            boss_move_1 = data['message']['move_1']
+            boss_move_2 = data['message']['move_2']
         else:
             boss_cp = "null"
             boss_move_1 = "null"
@@ -199,26 +199,26 @@ def process_pokemon(data):
     current_time = datetime.datetime.utcnow()
 
     #Load payload data into variables
-    if 'gender' in data[0]['message']:
-        gender = data[0]['message']['gender']
+    if 'gender' in data['message']:
+        gender = data['message']['gender']
     else:
         gender = 0
-    if 'form' in data[0]['message']:
-        form = data[0]['message']['form']
+    if 'form' in data['message']:
+        form = data['message']['form']
     else:
         form = 0
-    if 'boosted_weather' in data[0]['message']:
-        boosted_weather = data[0]['message']['boosted_weather']
+    if 'boosted_weather' in data['message']:
+        boosted_weather = data['message']['boosted_weather']
     else:
         boosted_weather = 0
-    disappear_time = data[0]['message']['disappear_time']
-    encounter_id = data[0]['message']['encounter_id']
-    last_modified_time = data[0]['message']['last_modified_time']
-    latitude = data[0]['message']['latitude']
-    longitude = data[0]['message']['longitude']
-    pokemon_id = data[0]['message']['pokemon_id']
-    spawnpoint_id = data[0]['message']['spawnpoint_id']
-    time_until_hidden_ms = data[0]['message']['time_until_hidden_ms']
+    disappear_time = data['message']['disappear_time']
+    encounter_id = data['message']['encounter_id']
+    #last_modified_time = data['message']['last_modified_time']
+    latitude = data['message']['latitude']
+    longitude = data['message']['longitude']
+    pokemon_id = data['message']['pokemon_id']
+    spawnpoint_id = data['message']['spawnpoint_id']
+    #time_until_hidden_ms = data['message']['time_until_hidden_ms']
 
     pokemon_insert_query = "INSERT INTO sightings(pokemon_id, gender, form, weather_boosted_condition, spawn_id, expire_timestamp, encounter_id, lat, lon) VALUES(" + str(pokemon_id) + ", " + str(gender) + ", " + str(form) + ", " + str(boosted_weather) + ", " + str(spawnpoint_id) + ", " + str(disappear_time) + ", " + str(encounter_id) + ", " + str(latitude) + ", " + str(longitude) + ");"
 
@@ -270,20 +270,22 @@ def process_gym(data):
         logging.debug("GYM DEBUG: LOADING DATA")
     
     #Load payload data into variables
-    raid_active_until = data[0]['message']['raid_active_until']
-    external_id = data[0]['message']['gym_id']
-    gym_name = data[0]['message']['name']
-    gym_description = data[0]['message']['description']
-    gym_url = data[0]['message']['url']
-    gym_team = data[0]['message']['team_id']
-    slots_available = data[0]['message']['slots_available']
-    guard_pokemon_id = data[0]['message']['guard_pokemon_id']
-    lowest_pokemon_motivation = data[0]['message']['lowest_pokemon_motivation']
-    total_cp = data[0]['message']['total_cp']
-    enabled = data[0]['message']['enabled']
-    gym_lat = data[0]['message']['latitude']
-    gym_lon = data[0]['message']['longitude']
-    last_modified = data[0]['message']['last_modified']
+    #raid_active_until = data['message']['raid_active_until']
+    external_id = data['message']['gym_id']
+    gym_name = data['message']['name']
+    #gym_description = data['message']['description']
+    gym_url = data['message']['url']
+    gym_team = data['message']['team_id']
+    slots_available = data['message']['slots_available']
+    #guard_pokemon_id = data['message']['guard_pokemon_id']
+    guard_pokemon_id = 0;
+    #lowest_pokemon_motivation = data['message']['lowest_pokemon_motivation']
+    #total_cp = data['message']['total_cp']
+    #enabled = data['message']['enabled']
+    gym_lat = data['message']['latitude']
+    gym_lon = data['message']['longitude']
+    #last_modified = data['message']['last_modified']
+    last_modified = 0;
 
     get_gym_id_query = "SELECT id FROM forts WHERE external_id='" + str(external_id) + "';"
 
@@ -305,11 +307,14 @@ def process_gym(data):
     except:
         database.rollback()
 
-    gym_id_1 = fort_data[0][0]
+
 
     if ( GYM_DEBUG ):
-        print("GYM DEBUG: gym_id_1 = " + str(gym_id_1))
         print("GYM DEBUG: fort_count = " + str(fort_count))
+        
+        if ( fort_count ):
+            gym_id_1 = fort_data[0][0]
+            print("GYM DEBUG: gym_id_1 = " + str(gym_id_1))
 
     if not ( fort_count ):
         print("Fort ID was not found. Attempting to insert new gym.")
@@ -396,23 +401,23 @@ def process_quest(data):
         logging.debug("QUEST DEBUG: LOADING DATA")
     
     #Load payload data into variables
-    external_id = data[0]['message']['pokestop_id']
-    latitude = data[0]['message']['latitude']
-    longitude = data[0]['message']['longitude']
-    quest_type = data[0]['message']['quest_type']
-    quest_type_raw = data[0]['message']['quest_type_raw']
-    item_type = data[0]['message']['item_type']
-    item_amount = data[0]['message']['item_amount']
-    item_id = data[0]['message']['item_id']
-    pokemon_id = data[0]['message']['pokemon_id']
-    name = data[0]['message']['name']
-    url = data[0]['message']['url']
-    timestamp = data[0]['message']['timestamp']
-    quest_reward_type = data[0]['message']['quest_reward_type']
-    quest_reward_type_raw = data[0]['message']['quest_reward_type_raw']
-    quest_target = data[0]['message']['quest_target']
-    quest_task = data[0]['message']['quest_task']
-    quest_condition = data[0]['message']['quest_condition']
+    external_id = data['message']['pokestop_id']
+    latitude = data['message']['latitude']
+    longitude = data['message']['longitude']
+    quest_type = data['message']['quest_type']
+    quest_type_raw = data['message']['quest_type_raw']
+    item_type = data['message']['item_type']
+    item_amount = data['message']['item_amount']
+    item_id = data['message']['item_id']
+    pokemon_id = data['message']['pokemon_id']
+    name = data['message']['name']
+    url = data['message']['url']
+    timestamp = data['message']['timestamp']
+    quest_reward_type = data['message']['quest_reward_type']
+    quest_reward_type_raw = data['message']['quest_reward_type_raw']
+    quest_target = data['message']['quest_target']
+    quest_task = data['message']['quest_task']
+    quest_condition = data['message']['quest_condition']
 
 
     if ( QUEST_DEBUG ):
@@ -520,33 +525,41 @@ def webhook():
         utc_now = pytz.utc.localize(datetime.datetime.utcnow())
         pst_now = utc_now.astimezone(pytz.timezone("America/Los_Angeles"))
         data = json.loads(request.data)
+
         
+
         if ( MAIN_DEBUG ):
             print("MESSAGE RECEIVED AT " + str(pst_now) + ": " + str(request.json))
             logging.info("MESSAGE RECEIVED AT " + str(pst_now) + ": " + str(request.json))
             print("MAIN DEBUG: type=" + str(data[0]['type']))
             logging.debug("MAIN DEBUG: type=" + str(data[0]['type']))
+            print("NUMBER OF MESSAGES TO PROCESS: " + str(len(data)))
         else:
             print("RECEIVED: type=" + str(data[0]['type']))
             logging.debug("MAIN DEBUG: type=" + str(data[0]['type']))
-        
+
         message_type = data[0]['type']
+
+        for msg in data:
+            print("type = " + str(msg['type']))
         
-        if message_type == "raid":
-            result = proces_raid(data)
-            return result
+            if msg['type'] == "raid":
+                result = proces_raid(msg)
+                #return result
 
-        if message_type == "pokemon":
-            result = process_pokemon(data)
-            return result
+            if msg['type'] == "pokemon":
+                result = process_pokemon(msg)
+                #return result
 
-        if message_type == "gym":
-            result = process_gym(data)
-            return result
+            if msg['type'] == "gym":
+                result = process_gym(msg)
+                #return result
 
-        if message_type == "quest":
-            result = process_quest(data)
-            return result
+            if msg['type'] == "quest":
+                result = process_quest(msg)
+                #return result
+
+        return 'DONE PROCESSING ' + str(len(data)) + ' MESSAGE(S).\n', 200
     else:
         abort(400)
 
