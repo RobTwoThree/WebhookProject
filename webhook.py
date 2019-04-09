@@ -544,12 +544,8 @@ def webhook():
         if ( MAIN_DEBUG ):
             print("MESSAGE RECEIVED AT " + str(pst_now) + ": " + str(request.json))
             logging.info("MESSAGE RECEIVED AT " + str(pst_now) + ": " + str(request.json))
-            print("MAIN DEBUG: type=" + str(data[0]['type']))
-            logging.debug("MAIN DEBUG: type=" + str(data[0]['type']))
             print("NUMBER OF MESSAGES TO PROCESS (RECEIVED): " + str(len(data)))
-        else:
-            print("RECEIVED: type=" + str(data[0]['type']))
-            logging.debug("MAIN DEBUG: type=" + str(data[0]['type']))
+            logging.info("NUMBER OF MESSAGES TO PROCESS (RECEIVED): " + str(len(data)))
 
         # Validate JSON data for duplicates and parse them into separate JSON lists
         raids = []
