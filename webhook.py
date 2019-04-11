@@ -27,7 +27,10 @@ def proces_raid(data):
     gym_id = data['gym_id']
     gym_lat = data['latitude']
     gym_lon = data['longitude']
-    gym_url = data['url']
+    if 'url' not in data:
+        gym_url = ''
+    else:    
+        gym_url = data['url']
     gym_team = data['team_id']
     raid_level = data['level']
     raid_begin = data['start']
