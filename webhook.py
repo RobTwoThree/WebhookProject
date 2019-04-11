@@ -29,7 +29,7 @@ def proces_raid(data):
     gym_lon = data['longitude']
     if 'url' not in data:
         gym_url = ''
-    else:    
+    else:
         gym_url = data['url']
     gym_team = data['team_id']
     raid_level = data['level']
@@ -92,10 +92,9 @@ def proces_raid(data):
                 logging.debug("RAID DEBUG: raid_count = " + str(raid_count))
                 print("RAID DEBUG: boss_id = " + str(boss_id))
                 logging.debug("RAID DEBUG: boss_id = " + str(boss_id))
-            
-
+        
             #If raid entry already exists and current boss_id is provided in message, update entry
-            if raid_count and boss_id != 0:
+            if raid_count > 0 and boss_id != "0":
                 if ( RAID_DEBUG ):
                     print("RAID DEBUG: raid_data[0][2] = " + str(raid_data[0][2]))
                     logging.debug("RAID DEBUG: raid_data[0][2] = " + str(raid_data[0][2]))
@@ -123,43 +122,56 @@ def proces_raid(data):
                     pass
                 return 'Duplicate webhook message was ignored.\n', 200
             else:
-                try:
-                    database.ping(True)
-                    cursor.execute(insert_query)
-                    database.commit()
-                    
-                    if ( RAID_DEBUG ):
-                        print("RAID INSERT EXECUTED. Gym:" + str(gym_id) + " Raid:" + str(raid_level) + " Boss:" + str(boss_id))
-                        logging.info("RAID INSERT EXECUTED. Gym:" + str(gym_id) + " Raid:" + str(raid_level) + " Boss:" + str(boss_id))
-                except:
-                    database.rollback()
-                    
-                    if ( RAID_DEBUG ):
-                        print("RAID INSERT FAILED.")
-                        logging.info("RAID INSERT FAILED.")
-                        
-                #Need to check if fort_id is in fort_sightings. If not, insert as new entry, otherwise update.
-                database.ping(True)
-                cursor.execute(fort_sightings_query)
-                fs_count = cursor.rowcount
-                        
-                if ( fs_count ):
-                    fort_sightings_update = "UPDATE fort_sightings SET team='" + str(gym_team) + "' WHERE fort_id='" + str(gym_id) + "';"
-                            
+                if raid_count == 0: # This is a new egg that popped so go ahead and insert it
                     try:
                         database.ping(True)
-                        cursor.execute(fort_sightings_update)
+                        cursor.execute(insert_query)
                         database.commit()
                         
                         if ( RAID_DEBUG ):
-                            print("RAID UPDATED FORT_SIGHTINGS. Gym:" + str(gym_id) + " Team:" + str(gym_team) + "\n")
-                            logging.info("RAID UPDATED FORT_SIGHTINGS. Gym:" + str(gym_id) + " Team:" + str(gym_team) + "\n")
+                            print("RAID INSERT EXECUTED. Gym:" + str(gym_id) + " Raid:" + str(raid_level) + " Boss:" + str(boss_id))
+                            logging.info("RAID INSERT EXECUTED. Gym:" + str(gym_id) + " Raid:" + str(raid_level) + " Boss:" + str(boss_id))
                     except:
                         database.rollback()
                         
                         if ( RAID_DEBUG ):
-                            print("RAID UPDATE TO FORT_SIGHTINGS FAILED.\n")
-                            logging.info("RAID UPDATE TO FORT_SIGHTINGS FAILED.\n")
+                            print("RAID INSERT FAILED.\n")
+                            logging.info("RAID INSERT FAILED.\n")
+                else:
+                    if ( RAID_DEBUG ):
+                        print("DUPLICATE RAID. IGNORED.\n")
+                        logging.info("DUPLICATE RAID. IGNORED.\n")
+                    pass
+                #Need to check if fort_id is in fort_sightings. If not, insert as new entry, otherwise update.
+                database.ping(True)
+                cursor.execute(fort_sightings_query)
+                fs_data = cursor.fetchall()
+                fs_count = cursor.rowcount
+                database.commit()
+
+                if ( fs_count ):
+                    fort_sightings_update = "UPDATE fort_sightings SET team='" + str(gym_team) + "' WHERE fort_id='" + str(gym_id) + "';"
+                    
+                    if fs_data[0][2] != gym_team: #Check if gym (team) changed
+                        try:
+                            database.ping(True)
+                            cursor.execute(fort_sightings_update)
+                            database.commit()
+                            
+                            if ( RAID_DEBUG ):
+                                print("RAID UPDATED FORT_SIGHTINGS. Gym:" + str(gym_id) + " Team:" + str(gym_team) + "\n")
+                                logging.info("RAID UPDATED FORT_SIGHTINGS. Gym:" + str(gym_id) + " Team:" + str(gym_team) + "\n")
+                        except:
+                            database.rollback()
+                            
+                            if ( RAID_DEBUG ):
+                                print("RAID UPDATE TO FORT_SIGHTINGS FAILED.\n")
+                                logging.info("RAID UPDATE TO FORT_SIGHTINGS FAILED.\n")
+                    else:
+                        if ( RAID_DEBUG ):
+                            print("NO GYM CHANGE. IGNORING.\n")
+                            logging.info("NO GYM CHANGE. IGNORING.\n")
+                        pass
 
                 else:
                     fort_sightings_insert = "INSERT INTO fort_sightings(fort_id, team, last_modified) VALUES (" + str(gym_id) + ", " + str(gym_team) + ", " + str(calendar.timegm(current_time.timetuple())) + ");"
@@ -184,11 +196,11 @@ def proces_raid(data):
             database.rollback()
             
             if ( RAID_DEBUG ):
-                print("EXISTING RAID QUERY FAILED")
+                print("EXISTING RAID QUERY FAILED.\n")
     else:
         if ( RAID_DEBUG ):
-            print("RAID Gym ID Not Found.")
-            logging.info("RAID Gym ID Not Found.")
+            print("RAID Gym ID Not Found.\n")
+            logging.info("RAID Gym ID Not Found.\n")
                 
         add_gym_query = "INSERT INTO forts(external_id, lat, lon, name, url) VALUES('" + str(gym_id) + "', " +  str(gym_lat) + ", " + str(gym_lon) + ", '" + str(gym_name) + "', '" + str(gym_url) + "');"
                 
