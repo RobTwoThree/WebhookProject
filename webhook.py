@@ -555,12 +555,12 @@ def webhook():
         utc_now = pytz.utc.localize(datetime.datetime.utcnow())
         pst_now = utc_now.astimezone(pytz.timezone("America/Los_Angeles"))
         data = json.loads(request.data)
-        payload = request.json
+        payload = str(request.json)
         utf_payload = payload.encode()
 
         if ( MAIN_DEBUG ):
-            print("MESSAGE RECEIVED AT " + str(pst_now) + ": " + str(utf_payload))
-            logging.info("MESSAGE RECEIVED AT " + str(pst_now) + ": " + str(utf_payload))
+            print("MESSAGE RECEIVED AT " + str(pst_now) + ": " + utf_payload)
+            logging.info("MESSAGE RECEIVED AT " + str(pst_now) + ": " + utf_payload)
             print("NUMBER OF MESSAGES TO PROCESS (RECEIVED): " + str(len(data)))
             logging.info("NUMBER OF MESSAGES TO PROCESS (RECEIVED): " + str(len(data)))
 
