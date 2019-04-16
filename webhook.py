@@ -317,7 +317,7 @@ def process_gym(data):
     #last_modified = data['last_modified']
     last_modified = 0;
 
-    get_gym_id_query = "SELECT id FROM forts WHERE external_id='" + str(external_id) + "';"
+    get_gym_id_query = "SELECT id, name, url FROM forts WHERE external_id='" + str(external_id) + "';"
 
     insert_gym_query = "INSERT INTO forts(external_id, lat, lon, name, url) VALUES ('" + str(external_id) + "','" + str(gym_lat) + "','" + str(gym_lon) + "','" + str(gym_name) + "','" + str(gym_url) + "');"
 
@@ -341,10 +341,12 @@ def process_gym(data):
 
     if ( GYM_DEBUG ):
         print("GYM DEBUG: fort_count = " + str(fort_count))
+        logging.debug("GYM DEBUG: fort_count = " + str(fort_count))
         
         if ( fort_count ):
             gym_id_1 = fort_data[0][0]
             print("GYM DEBUG: gym_id_1 = " + str(gym_id_1))
+            logging.debug("GYM DEBUG: gym_id_1 = " + str(gym_id_1))
 
     if not ( fort_count ):
         print("Fort ID was not found. Attempting to insert new gym.")
@@ -370,15 +372,54 @@ def process_gym(data):
         database.rollback()
 
     gym_id_2 = fort_data[0][0]
+    gym_name_2 = fort_data[0][1]
+    gym_url_2 = fort_data[0][2]
 
     if ( GYM_DEBUG ):
         print("GYM DEBUG: gym_id_2 = " + str(gym_id_2))
+        logging.debug("GYM DEBUG: gym_id_2 = " + str(gym_id_2))
 
     insert_fort_sighting_query = "INSERT INTO fort_sightings(fort_id, last_modified, team, guard_pokemon_id, slots_available, updated) VALUES ('" + str(gym_id_2) + "','" + str(last_modified) + "','" + str(gym_team) + "','" + str(guard_pokemon_id) +  "','" + str(slots_available) + "','" + str(current_epoch_time) + "');"
 
     update_fort_sighting_query = "UPDATE fort_sightings SET last_modified='" + str(last_modified) + "', team='" + str(gym_team) + "', guard_pokemon_id='" + str(guard_pokemon_id) +  "', slots_available='" + str(slots_available) + "', updated='" + str(current_epoch_time) + "' WHERE fort_id='" + str(gym_id_2) + "';"
 
     fort_sightings_query = "SELECT id, fort_id FROM fort_sightings WHERE fort_id='" + str(gym_id_2) + "';"
+
+    update_fort_name_query = "UPDATE forts SET name='" + str(gym_name) + "' WHERE external_id='" + str(external_id) + "';"
+
+    update_fort_url_query = "UPDATE forts SET url='" + str(gym_url) + "' WHERE external_id='" + str(external_id) + "';"
+
+    if gym_name_2 is None and gym_name is not None:
+        try:
+            database.ping(True)
+            cursor.execute(update_fort_name_query)
+            database.commit()
+        
+            if ( GYM_DEBUG ):
+                print("GYM NAME UPDATED. NAME: " + str(gym_name))
+                logging.debug("GYM NAME UPDATED. NAME: " + str(gym_name))
+        except:
+            database.rollback()
+            
+            if ( GYM_DEBUG ):
+                print("FAILED TO UPDATE GYM NAME.")
+                logging.debug("FAILED TO UPDATE GYM NAME.")
+
+    if gym_url_2 is None and gym_url is not None:
+        try:
+            database.ping(True)
+            cursor.execute(update_fort_url_query)
+            database.commit()
+            
+            if ( GYM_DEBUG ):
+                print("GYM URL UPDATED. URL: " + str(gym_url))
+                logging.debug("GYM URL UPDATED. URL: " + str(gym_url))
+        except:
+            database.rollback()
+
+            if ( GYM_DEBUG ):
+                print("FAILED TO UPDATE GYM URL.")
+                logging.debug("FAILED TO UPDATE GYM URL.")
 
     try:
         database.ping(True)
@@ -453,13 +494,15 @@ def process_quest(data):
     if ( QUEST_DEBUG ):
         print("QUEST DEBUG: quest_condition = " + str(quest_condition))
 
-    get_pokestop_id_query = "SELECT id FROM pokestops WHERE external_id='" + str(external_id) + "';"
+    get_pokestop_id_query = "SELECT id, name, url FROM pokestops WHERE external_id='" + str(external_id) + "';"
 
     insert_pokestop_query = "INSERT INTO pokestops(external_id, lat, lon, name, url, updated) VALUES ('" + str(external_id) + "', '" + str(latitude) + "', '" + str(longitude) + "', '" + str(name) + "', '" + str(url) + "', '" + str(timestamp) + "');"
 
     if ( QUEST_DEBUG ):
         print("QUEST DEBUG: get_pokestop_id_query = " + str(get_pokestop_id_query))
+        logging.debug("QUEST DEBUG: get_pokestop_id_query = " + str(get_pokestop_id_query))
         print("QUEST DEBUG: insert_pokestop_query = " + str(insert_pokestop_query))
+        logging.debug("QUEST DEBUG: insert_pokestop_query = " + str(insert_pokestop_query))
 
     #Check if pokestop exists, if not insert new one
     try:
@@ -471,9 +514,10 @@ def process_quest(data):
     except:
         database.rollback()
 
-    if not ( ps_count ):
+    if not ( ps_count ): #If 0 records are returned, must be a new pokestop
         if ( QUEST_DEBUG ):
-            print ("POKESTOP NOT FOUND. Inserting new pokestop: " + str(name) + " Lat: " + str(latitude) + " Lon: " + str(longitude))
+            print("POKESTOP NOT FOUND. Inserting new pokestop: " + str(name) + " Lat: " + str(latitude) + " Lon: " + str(longitude))
+            logging.debug("POKESTOP NOT FOUND. Inserting new pokestop: " + str(name) + " Lat: " + str(latitude) + " Lon: " + str(longitude))
         
         try:
             database.ping(True)
@@ -481,7 +525,7 @@ def process_quest(data):
             database.commit()
         except:
             database.rollback()
- 
+
     #Get pokestop_id now
     try:
         database.ping(True)
@@ -492,7 +536,30 @@ def process_quest(data):
     except:
         database.rollback()
 
-    pokestop_id = ps_data[0][0];
+    pokestop_id = ps_data[0][0]
+    pokestop_url = ps_data[0][2]
+
+    update_pokestop_url = "UPDATE pokestops SET url='" + str(url) + "' WHERE id='" + str(pokestop_id) + "';"
+
+    if ( QUEST_DEBUG ):
+        print("QUEST DEBUG: update_pokestop_url = " + str(update_pokestop_url))
+        logging.debug("QUEST DEBUG: update_pokestop_url = " + str(update_pokestop_url))
+
+    if pokestop_url is None and url is not None:
+        try:
+            database.ping(True)
+            cursor.execute(update_pokestop_url)
+            database.commit()
+        
+            if ( QUEST_DEBUG ):
+                print("POKESTOP URL UPDATED. URL: " + str(url))
+                logging.debug("POKESTOP URL UPDATED. URL: " + str(url))
+        except:
+            database.rollback()
+            if ( QUEST_DEBUG ):
+                print("FAILED TO UPDATE POKESTOP URL. URL: " + str(url))
+                logging.debug("FAILED TO UPDATE POKESTOP URL. URL: " + str(url))
+
 
     insert_quest_query = "INSERT INTO quests(pokestop_id, quest_type, quest_type_raw, item_type, item_amount, item_id, pokemon_id, quest_reward_type, quest_reward_type_raw, quest_target, quest_task, quest_condition, timestamp) VALUES ('" + str(pokestop_id) + "', '" + str(quest_type) + "', '" + str(quest_type_raw) + "', '" + str(item_type) + "', '" + str(item_amount) + "', '" + str(item_id) + "', '" + str(pokemon_id) + "', '" + str(quest_reward_type) + "', '" + str(quest_reward_type_raw) + "', '" + str(quest_target) + "', '" + str(quest_task) + "', \"" + str(quest_condition) + "\", '" + str(timestamp) + "');"
 
