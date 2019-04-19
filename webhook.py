@@ -300,22 +300,32 @@ def process_gym(data):
         logging.debug("GYM DEBUG: LOADING DATA")
     
     #Load payload data into variables
-    #raid_active_until = data['raid_active_until']
     external_id = data['gym_id']
-    gym_name = data['name']
-    #gym_description = data['description']
-    gym_url = data['url']
     gym_team = data['team_id']
     slots_available = data['slots_available']
-    #guard_pokemon_id = data['guard_pokemon_id']
-    guard_pokemon_id = 0;
+    gym_lat = data['latitude']
+    gym_lon = data['longitude']
+    if 'name' in data:
+        gym_name = data['name']
+    else:
+        gym_name = None
+    if 'url' in data:
+        gym_url = data['url']
+    else:
+        gym_url = None
+    if 'guard_pokemon_id' in data:
+        guard_pokemon_id = data['guard_pokemon_id']
+    else:
+        guard_pokemon_id = 0
+    if 'last_modified' in data:
+        last_modified = data['last_modified']
+    else:
+        last_modified = 0;
     #lowest_pokemon_motivation = data['lowest_pokemon_motivation']
     #total_cp = data['total_cp']
     #enabled = data['enabled']
-    gym_lat = data['latitude']
-    gym_lon = data['longitude']
-    #last_modified = data['last_modified']
-    last_modified = 0;
+    #gym_description = data['description']
+    #raid_active_until = data['raid_active_until']
 
     get_gym_id_query = "SELECT id, name, url FROM forts WHERE external_id='" + str(external_id) + "';"
 
