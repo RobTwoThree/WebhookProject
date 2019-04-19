@@ -379,9 +379,9 @@ def process_gym(data):
         print("GYM DEBUG: gym_id_2 = " + str(gym_id_2))
         logging.debug("GYM DEBUG: gym_id_2 = " + str(gym_id_2))
 
-    insert_fort_sighting_query = "INSERT INTO fort_sightings(fort_id, last_modified, team, guard_pokemon_id, slots_available, updated) VALUES ('" + str(gym_id_2) + "','" + str(last_modified) + "','" + str(gym_team) + "','" + str(guard_pokemon_id) +  "','" + str(slots_available) + "','" + str(current_epoch_time) + "');"
+    insert_fort_sighting_query = "INSERT INTO fort_sightings(fort_id, last_modified, team, guard_pokemon_id, slots_available, updated) VALUES ('" + str(gym_id_2) + "','" + str(current_epoch_time) + "','" + str(gym_team) + "','" + str(guard_pokemon_id) +  "','" + str(slots_available) + "','" + str(current_epoch_time) + "');"
 
-    update_fort_sighting_query = "UPDATE fort_sightings SET last_modified='" + str(last_modified) + "', team='" + str(gym_team) + "', guard_pokemon_id='" + str(guard_pokemon_id) +  "', slots_available='" + str(slots_available) + "', updated='" + str(current_epoch_time) + "' WHERE fort_id='" + str(gym_id_2) + "';"
+    update_fort_sighting_query = "UPDATE fort_sightings SET last_modified='" + str(current_epoch_time) + "', team='" + str(gym_team) + "', guard_pokemon_id='" + str(guard_pokemon_id) +  "', slots_available='" + str(slots_available) + "', updated='" + str(current_epoch_time) + "' WHERE fort_id='" + str(gym_id_2) + "';"
 
     fort_sightings_query = "SELECT id, fort_id FROM fort_sightings WHERE fort_id='" + str(gym_id_2) + "';"
 
