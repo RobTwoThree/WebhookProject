@@ -31,11 +31,15 @@ def proces_raid(data):
         gym_url = ''
     else:
         gym_url = data['url']
+        gym_url_raw = str(gym_url)
+        if "http:" in gym_url:
+            gym_url = gym_url.replace("http:","https:")
     gym_team = data['team_id']
     raid_level = data['level']
     raid_begin = data['start']
     raid_end = data['end']
-        
+
+
     #Check if message has pokemon_id sent. If not, its an egg
     if 'pokemon_id' in data:
         boss_id = data['pokemon_id']
@@ -311,6 +315,8 @@ def process_gym(data):
         gym_name = None
     if 'url' in data:
         gym_url = data['url']
+        if "http:" in gym_url:
+            gym_url = gym_url.replace("http:","https:")
     else:
         gym_url = None
     if 'guard_pokemon_id' in data:
@@ -491,15 +497,22 @@ def process_quest(data):
     item_amount = data['item_amount']
     item_id = data['item_id']
     pokemon_id = data['pokemon_id']
-    name = data['name']
-    url = data['url']
     timestamp = data['timestamp']
     quest_reward_type = data['quest_reward_type']
     quest_reward_type_raw = data['quest_reward_type_raw']
     quest_target = data['quest_target']
     quest_task = data['quest_task']
     quest_condition = data['quest_condition']
-
+    if 'name' in data:
+        name = data['name']
+    else:
+        name = ''
+    if 'url' in data:
+        url = data['url']
+        if "http:" in url:
+            url = url.replace("http:","https:")
+    else:
+        url = ''
 
     if ( QUEST_DEBUG ):
         print("QUEST DEBUG: quest_condition = " + str(quest_condition))
