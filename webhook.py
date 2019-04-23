@@ -245,6 +245,38 @@ def process_pokemon(data):
         boosted_weather = data['boosted_weather']
     else:
         boosted_weather = 0
+    if 'individual_attack' in data:
+        atk_iv = data['individual_attack']
+    else:
+        atk_iv = None
+    if 'individual_defense' in data:
+        def_iv = data['individual_defense']
+    else:
+        def_iv = None
+    if 'individual_stamina' in data:
+        sta_iv = data['individual_stamina']
+    else:
+        sta_iv = None
+    if 'cp' in data:
+        cp = data['cp']
+    else:
+        cp = None
+    if 'pokemon_level' in data:
+        level = data['pokemon_level']
+    else:
+        level = None
+    if 'weight' in data:
+        weight = data['weight']
+    else:
+        weight = None
+    if 'move_1' in data:
+        move_1 = data['move_1']
+    else:
+        move_1 = None
+    if 'move_2' in data:
+        move_2 = data['move_2']
+    else:
+        move_2 = None
     disappear_time = data['disappear_time']
     encounter_id = data['encounter_id']
     #last_modified_time = data['last_modified_time']
@@ -254,13 +286,15 @@ def process_pokemon(data):
     spawnpoint_id = data['spawnpoint_id']
     #time_until_hidden_ms = data['time_until_hidden_ms']
 
-    pokemon_insert_query = "INSERT INTO sightings(pokemon_id, gender, form, weather_boosted_condition, spawn_id, expire_timestamp, encounter_id, lat, lon) VALUES(" + str(pokemon_id) + ", " + str(gender) + ", " + str(form) + ", " + str(boosted_weather) + ", " + str(spawnpoint_id) + ", " + str(disappear_time) + ", " + str(encounter_id) + ", " + str(latitude) + ", " + str(longitude) + ");"
+    iv_pokemon_insert_query = "INSERT INTO sightings(pokemon_id, gender, form, weather_boosted_condition, spawn_id, expire_timestamp, encounter_id, lat, lon, atk_iv, def_iv, sta_iv, cp, level, weight, move_1, move_2) VALUES(" + str(pokemon_id) + ", " + str(gender) + ", " + str(form) + ", " + str(boosted_weather) + ", " + str(spawnpoint_id) + ", " + str(disappear_time) + ", " + str(encounter_id) + ", " + str(latitude) + ", " + str(longitude) + ", " + str(atk_iv) + ", " + str(def_iv) + ", " + str(sta_iv) + ", " + str(cp) + ", " + str(level) + ", " + str(weight) + ", " + str(move_1) + ", " + str(move_2) + ");"
 
-    encounter_id_query = "SELECT encounter_id FROM sightings WHERE encounter_id='" + str(encounter_id) + "';"
+    update_pokemon_query = "UPDATE sightings SET atk_iv='" + str(atk_iv) + "', def_iv='" + str(def_iv) + "', sta_iv='" + str(sta_iv) + "', cp='" + str(cp) + "', level='" + str(level) + "', weight='" + str(weight) + "', move_1='" + str(move_1) + "', move_2='" + str(move_2) + "' WHERE encounter_id='" + str(encounter_id) + "';"
+
+    encounter_id_query = "SELECT encounter_id, atk_iv, def_iv, sta_iv FROM sightings WHERE encounter_id='" + str(encounter_id) + "';"
 
     if ( POKEMON_DEBUG ):
-        print("POKEMON DEBUG: " + str(pokemon_insert_query))
-        logging.debug("POKEMON DEBUG: " + str(pokemon_insert_query))
+        print("POKEMON DEBUG: " + str(iv_pokemon_insert_query))
+        logging.debug("POKEMON DEBUG: " + str(iv_pokemon_insert_query))
         print("POKEMON DEBUG: " + str(encounter_id_query))
         logging.debug("POKEMON DEBUG: " + str(encounter_id_query))
 
@@ -269,14 +303,16 @@ def process_pokemon(data):
         database.ping(True)
         cursor.execute(encounter_id_query)
         encounter_id_count = cursor.rowcount
+        pokemon_data = cursor.fetchall()
         database.commit()
     except:
         database.rollback()
 
+    #New pokemon, go ahead and insert new
     if not ( encounter_id_count ):
         try:
             database.ping(True)
-            cursor.execute(pokemon_insert_query)
+            cursor.execute(iv_pokemon_insert_query)
             database.commit()
             
             if ( POKEMON_DEBUG ):
@@ -287,12 +323,29 @@ def process_pokemon(data):
             
             if ( POKEMON_DEBUG ):
                 print("POKEMON INSERT FAILED.\n")
-                logging.info("POKEMON INSERT FAILED.\n")
-    else:
-        if ( POKEMON_DEBUG ):
-            print("DUPLICATE POKEMON MESSAGE. IGNORED.\n")
-            logging.info("DUPLICATE POKEMON MESSAGE. IGNORED.\n")
-        pass
+                logging.debug("POKEMON INSERT FAILED.\n")
+    else: #Existing pokemon, check to see if its an IV update
+        stored_atk_iv = pokemon_data[0][1]
+        
+        #Check to see if stored IV is different from what is being sent this time
+        if str(stored_atk_iv) != str(atk_iv):
+            try:
+                database.ping(True)
+                cursor.execute(update_pokemon_query)
+                database.commit()
+                if ( POKEMON_DEBUG ):
+                    print("POKEMON UPDATED: encounter_id: " + str(encounter_id) + " atk_iv: " + str(atk_iv) + " def_iv: " + str(def_iv) + " sta_iv: " + str(sta_iv) + " cp: " + str(cp) + "\n")
+                    logging.info("POKEMON UPDATED: encounter_id: " + str(encounter_id) + " atk_iv: " + str(atk_iv) + " def_iv: " + str(def_iv) + " sta_iv: " + str(sta_iv) + " cp: " + str(cp) + "\n")
+            except:
+                database.rollback()
+                if ( POKEMON_DEBUG ):
+                    print("POKEMON UPDATE FAILED.\n")
+                    logging.info("POKEMON UPDATE FAILED.\n")
+        else:
+            if ( POKEMON_DEBUG ):
+                print("DUPLICATE POKEMON MESSAGE. IGNORED.\n")
+                logging.info("DUPLICATE POKEMON MESSAGE. IGNORED.\n")
+            pass
 
     return 'Pokemon type was sent and processed.\n', 200
 
@@ -695,29 +748,6 @@ def webhook():
         if ( len(quests) ):
             for quest in quests:
                 result = process_quest(quest)
-
-#        for msg in data:
-            #if ( MAIN_DEBUG ):
-                #print("MESSAGE TYPE = " + str(msg['type']))
-                #logging.info("MESSAGE TYPE = " + str(msg['type']))
-        
-#            if msg['type'] == "raid":
-#                if ( MAIN_DEBUG ):
-#                    print("MESSAGE TYPE = " + str(msg['type']) + ", gym_id = " + str(msg['message']['gym_id']) + ", level = " + str(msg['message']['level']) + ", start = " + str(msg['message']['start']) + ", end = " + str(msg['message']['end']))
-#                result = proces_raid(msg)
-                #return result
-
-#            if msg['type'] == "pokemon":
-#                result = process_pokemon(msg)
-#                #return result
-
-#            if msg['type'] == "gym":
-#                result = process_gym(msg)
-                #return result
-
-#            if msg['type'] == "quest":
-#                result = process_quest(msg)
-                #return result
 
         return 'DONE PROCESSING ' + str(len(data)) + ' MESSAGE(S).\n', 200
     else:
