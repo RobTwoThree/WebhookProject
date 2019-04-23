@@ -711,7 +711,11 @@ def webhook():
             ip_address = ip_address_split[0]
         
             if ip_address in WHITELIST:
-                print("Message from " + str(ip_address) + " is valid.  Processing.\n")
+                print("MESSAGE FROM " + str(ip_address) + " IS VALID.  PROCESSING.")
+                logging.info("MESSAGE FROM " + str(ip_address) + " IS VALID.  PROCESSING.")
+            else
+                print("MESSAGE FROM " + str(ip_address) + " IS NOT VALID.")
+                logging.info("MESSAGE FROM " + str(ip_address) + " IS NOT VALID.")
 
         if ( MAIN_DEBUG ):
             if ( SHOW_PAYLOAD ):
@@ -750,7 +754,7 @@ def webhook():
             print("NUMBER OF POKEMONS PROCESSED: " + str(len(pokemons)))
             logging.debug("NUMBER OF POKEMONS PROCESSED: " + str(len(pokemons)))
             print("NUMBER OF QUESTS PROCESSED: " + str(len(quests)))
-            logging.debug("NUMBER OF QUESTS PROCESSED: " + str(len(quests)))
+            logging.debug("NUMBER OF QUESTS PROCESSED: " + str(len(quests)) + "\n")
 
         if ( len(raids) ):
             for raid in raids:
