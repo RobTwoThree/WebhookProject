@@ -703,13 +703,15 @@ def webhook():
 
         ip_address = request.remote_addr
 
+        ip_real_address = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
+
         if ( MAIN_DEBUG ):
             if ( SHOW_PAYLOAD ):
-                print("MESSAGE RECEIVED FROM " + str(ip_address) + " AT " + str(pst_now) + ": " + str(utf_payload))
-                logging.info("MESSAGE RECEIVED FROM " + str(ip_address) + " AT " + str(pst_now) + ": " + str(utf_payload))
+                print("MESSAGE RECEIVED FROM " + str(ip_real_address) + " AT " + str(pst_now) + ": " + str(utf_payload))
+                logging.info("MESSAGE RECEIVED FROM " + str(ip_real_address) + " AT " + str(pst_now) + ": " + str(utf_payload))
             else:
-                print("MESSAGE RECEIVED FROM " + str(ip_address) + " AT " + str(pst_now))
-                logging.info("MESSAGE RECEIVED FROM " + str(ip_address) + " AT " + str(pst_now))
+                print("MESSAGE RECEIVED FROM " + str(ip_real_address) + " AT " + str(pst_now))
+                logging.info("MESSAGE RECEIVED FROM " + str(ip_real_address) + " AT " + str(pst_now))
             print("NUMBER OF MESSAGES TO PROCESS (RECEIVED): " + str(len(data)))
             logging.info("NUMBER OF MESSAGES TO PROCESS (RECEIVED): " + str(len(data)))
 
