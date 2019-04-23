@@ -6,7 +6,7 @@ import calendar
 import time
 import logging
 from flask import Flask, request, abort
-from config import HOST, PORT, DB_HOST, DB_USER, DB_PASSWORD, DATABASE, MAIN_DEBUG, RAID_DEBUG, GYM_DEBUG, POKEMON_DEBUG, QUEST_DEBUG
+from config import HOST, PORT, DB_HOST, DB_USER, DB_PASSWORD, DATABASE, MAIN_DEBUG, SHOW_PAYLOAD, RAID_DEBUG, GYM_DEBUG, POKEMON_DEBUG, QUEST_DEBUG
 
 logging.basicConfig(filename='debug_webhook.log',level=logging.DEBUG)
 
@@ -701,9 +701,15 @@ def webhook():
         payload = str(request.json)
         utf_payload = payload.encode()
 
+        ip_address = request.remote_addr
+
         if ( MAIN_DEBUG ):
-            print("MESSAGE RECEIVED AT " + str(pst_now) + ": " + str(utf_payload))
-            logging.info("MESSAGE RECEIVED AT " + str(pst_now) + ": " + str(utf_payload))
+            if ( SHOW_PAYLOAD ):
+                print("MESSAGE RECEIVED FROM " + str(ip_address) + " AT " + str(pst_now) + ": " + str(utf_payload))
+                logging.info("MESSAGE RECEIVED FROM " + str(ip_address) + " AT " + str(pst_now) + ": " + str(utf_payload))
+            else:
+                print("MESSAGE RECEIVED FROM " + str(ip_address) + " AT " + str(pst_now))
+                logging.info("MESSAGE RECEIVED FROM " + str(ip_address) + " AT " + str(pst_now))
             print("NUMBER OF MESSAGES TO PROCESS (RECEIVED): " + str(len(data)))
             logging.info("NUMBER OF MESSAGES TO PROCESS (RECEIVED): " + str(len(data)))
 
