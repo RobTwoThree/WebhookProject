@@ -7,6 +7,7 @@ import time
 import logging
 from flask import Flask, request, abort
 from config import HOST, PORT, DB_HOST, DB_USER, DB_PASSWORD, DATABASE, MAIN_DEBUG, SHOW_PAYLOAD, RAID_DEBUG, GYM_DEBUG, POKEMON_DEBUG, QUEST_DEBUG
+from werkzeug.contrib.fixers import ProxyFix
 
 logging.basicConfig(filename='debug_webhook.log',level=logging.DEBUG)
 
@@ -762,3 +763,4 @@ def webhook():
 
 if __name__ == '__main__':
     app.run(host=HOST,port=PORT)
+    app.wsgi_app = ProxyFix(app.wsgi_app)
