@@ -701,7 +701,7 @@ def webhook():
         payload = str(request.json)
         utf_payload = payload.encode()
 
-        ip_address = request.environ.get['X-Forwarded-For', request.remote_addr]
+        ip_address = request.remote_addr
 
         if ( MAIN_DEBUG ):
             if ( SHOW_PAYLOAD ):
