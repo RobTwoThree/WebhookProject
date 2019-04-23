@@ -6,8 +6,7 @@ import calendar
 import time
 import logging
 from flask import Flask, request, abort
-from config import HOST, PORT, DB_HOST, DB_USER, DB_PASSWORD, DATABASE, MAIN_DEBUG, SHOW_PAYLOAD, RAID_DEBUG, GYM_DEBUG, POKEMON_DEBUG, QUEST_DEBUG
-from werkzeug.contrib.fixers import ProxyFix
+from config import HOST, PORT, DB_HOST, DB_USER, DB_PASSWORD, DATABASE, MAIN_DEBUG, SHOW_PAYLOAD, RAID_DEBUG, GYM_DEBUG, POKEMON_DEBUG, QUEST_DEBUG, WHITELIST
 
 logging.basicConfig(filename='debug_webhook.log',level=logging.DEBUG)
 
@@ -703,7 +702,12 @@ def webhook():
         utf_payload = payload.encode()
 
         #ip_address = request.remote_addr
-        ip_address = request.environ.get('HTTP_X_FORWARDED_FOR')
+        ip_address_raw = request.environ.get('HTTP_X_FORWARDED_FOR')
+
+        if ip_address_raw is None:
+            ip_address = "Local Host"
+        else:
+            ip_address = ip_address_raw[0]
 
         if ( MAIN_DEBUG ):
             if ( SHOW_PAYLOAD ):
@@ -763,6 +767,5 @@ def webhook():
 
 
 if __name__ == '__main__':
-    #app.wsgi_app = ProxyFix(app.wsgi_app)
     app.run(host=HOST,port=PORT)
 
