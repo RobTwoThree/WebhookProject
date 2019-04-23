@@ -707,7 +707,8 @@ def webhook():
         if ip_address_raw is None:
             ip_address = "Local Host"
         else:
-            ip_address = ip_address_raw
+            ip_address_split = ip_address_raw.split(',')
+            ip_address = ip_address_split[0]
 
         if ( MAIN_DEBUG ):
             if ( SHOW_PAYLOAD ):
