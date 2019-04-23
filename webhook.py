@@ -763,6 +763,6 @@ def webhook():
 
 
 if __name__ == '__main__':
-    app.wsgi_app = ProxyFix(app.wsgi_app)
+    #app.wsgi_app = ProxyFix(app.wsgi_app)
     app.run(host=HOST,port=PORT)
 
