@@ -710,7 +710,7 @@ def webhook():
             ip_address_split = ip_address_raw.split(',')
             ip_address = ip_address_split[0]
         
-            if ip_address_split in WHITELIST:
+            if ip_address in WHITELIST:
                 print("Message from " + str(ip_address) + " is valid.  Processing.\n")
 
         if ( MAIN_DEBUG ):
