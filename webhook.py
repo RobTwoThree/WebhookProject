@@ -713,7 +713,7 @@ def webhook():
             if ip_address in WHITELIST:
                 print("MESSAGE FROM " + str(ip_address) + " IS VALID.  PROCESSING.")
                 logging.info("MESSAGE FROM " + str(ip_address) + " IS VALID.  PROCESSING.")
-            else
+            else:
                 print("MESSAGE FROM " + str(ip_address) + " IS NOT VALID.")
                 logging.info("MESSAGE FROM " + str(ip_address) + " IS NOT VALID.")
 
