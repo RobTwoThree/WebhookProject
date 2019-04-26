@@ -699,7 +699,7 @@ def webhook():
         pst_now = utc_now.astimezone(pytz.timezone("America/Los_Angeles"))
         data = json.loads(request.data)
         payload = str(request.json)
-        utf_payload = payload.encode()
+        utf_payload = payload.encode('utf-8')
 
         #ip_address = request.remote_addr
         ip_address_raw = request.environ.get('HTTP_X_FORWARDED_FOR')
@@ -713,9 +713,11 @@ def webhook():
             if ip_address in WHITELIST:
                 print("MESSAGE FROM " + str(ip_address) + " IS VALID.  PROCESSING.")
                 logging.info("MESSAGE FROM " + str(ip_address) + " IS VALID.  PROCESSING.")
+                VALID = True
             else:
                 print("MESSAGE FROM " + str(ip_address) + " IS NOT VALID.")
                 logging.info("MESSAGE FROM " + str(ip_address) + " IS NOT VALID.")
+                VALID = False
 
         if ( MAIN_DEBUG ):
             if ( SHOW_PAYLOAD ):
@@ -756,6 +758,7 @@ def webhook():
             print("NUMBER OF QUESTS PROCESSED: " + str(len(quests)))
             logging.debug("NUMBER OF QUESTS PROCESSED: " + str(len(quests)) + "\n")
 
+        #if ( VALID ):
         if ( len(raids) ):
             for raid in raids:
                 result = proces_raid(raid)
@@ -770,6 +773,9 @@ def webhook():
                 result = process_quest(quest)
 
         return 'DONE PROCESSING ' + str(len(data)) + ' MESSAGE(S).\n', 200
+        #else:
+        #    return 'THANK YOU. DONE PROCESSING ' + str(len(data)) + ' MESSAGE(S).\n', 200
+        
     else:
         abort(400)
 
