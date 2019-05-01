@@ -16,7 +16,7 @@ database = MySQLdb.connect(DB_HOST, DB_USER, DB_PASSWORD, DATABASE)
 
 cursor = database.cursor()
 
-print('Webhook Started at ' + str(time.strftime('%I:%M %p on %m.%d.%y',  time.localtime(calendar.timegm(datetime.datetime.utcnow().timetuple())))))
+print('Webhook Started at ' + str(time.strftime('%I:%M %p on %m.%d.%y',  time.localtime(calendar.timegm(datetime.datetime.utcnow().timetuple()))))).encode('utf-8')
 logging.info('Webhook Started at ' + str(time.strftime('%I:%M %p on %m.%d.%y',  time.localtime(calendar.timegm(datetime.datetime.utcnow().timetuple())))))
 
 def proces_raid(data):
