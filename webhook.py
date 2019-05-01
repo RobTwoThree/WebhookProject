@@ -249,35 +249,35 @@ def process_pokemon(data):
     if 'individual_attack' in data:
         atk_iv = data['individual_attack']
     else:
-        atk_iv = "null"
+        atk_iv = None
     if 'individual_defense' in data:
         def_iv = data['individual_defense']
     else:
-        def_iv = "null"
+        def_iv = None
     if 'individual_stamina' in data:
         sta_iv = data['individual_stamina']
     else:
-        sta_iv = "null"
+        sta_iv = None
     if 'cp' in data:
         cp = data['cp']
     else:
-        cp = "null"
+        cp = None
     if 'pokemon_level' in data:
         level = data['pokemon_level']
     else:
-        level = "null"
+        level = None
     if 'weight' in data:
         weight = data['weight']
     else:
-        weight = "null"
+        weight = None
     if 'move_1' in data:
         move_1 = data['move_1']
     else:
-        move_1 = "null"
+        move_1 = None
     if 'move_2' in data:
         move_2 = data['move_2']
     else:
-        move_2 = "null"
+        move_2 = None
     disappear_time = data['disappear_time']
     encounter_id = data['encounter_id']
     #last_modified_time = data['last_modified_time']
@@ -298,8 +298,11 @@ def process_pokemon(data):
         logging.debug("POKEMON DEBUG: " + str(iv_pokemon_insert_query))
         print("POKEMON DEBUG: " + str(encounter_id_query)).encode('utf-8')
         logging.debug("POKEMON DEBUG: " + str(encounter_id_query))
+<<<<<<< HEAD
         print("POKEMON DEBUG: " + str(update_pokemon_query)).encode('utf-8')
         logging.debug("POKEMON DEBUG: " + str(update_pokemon_query))
+=======
+>>>>>>> parent of 806e2d2... Change None to "null"
 
     #Check to see if encounter_id already exists in sightings
     try:
