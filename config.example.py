@@ -6,7 +6,8 @@ SHOW_PAYLOAD = False
 RAID_DEBUG = False
 POKEMON_DEBUG = False
 GYM_DEBUG = False
-QUEST_DEBUG = True
+QUEST_DEBUG = False
+POKESTOP_DEBUG = True
 
 # Database attributes
 DB_HOST = 'localhost'
