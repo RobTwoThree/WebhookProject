@@ -6,7 +6,7 @@ import calendar
 import time
 import logging
 from flask import Flask, request, abort
-from config import HOST, PORT, DB_HOST, DB_USER, DB_PASSWORD, DATABASE, MAIN_DEBUG, SHOW_PAYLOAD, RAID_DEBUG, GYM_DEBUG, POKEMON_DEBUG, QUEST_DEBUG, WHITELIST
+from config import HOST, PORT, DB_HOST, DB_USER, DB_PASSWORD, DATABASE, MAIN_DEBUG, SHOW_PAYLOAD, RAID_DEBUG, GYM_DEBUG, POKEMON_DEBUG, QUEST_DEBUG, POKESTOP_DEBUG, WHITELIST
 
 logging.basicConfig(filename='debug_webhook.log',level=logging.DEBUG)
 
@@ -703,6 +703,110 @@ def process_quest(data):
 
     return 'Quest type was sent and processed.\n', 200
 
+def process_pokestop(data):
+    if ( POKESTOP_DEBUG ):
+        print("POKESTOP DEBUG: LOADING DATA")
+        logging.debug("POKESTOP DEBUG: LOADING DATA")
+    
+    #Load payload data into variables
+    external_id = data['pokestop_id']
+    pokestop_name = data['name']
+    latitude = data['latitude']
+    longitude = data['longitude']
+    lure_expiration = data['lure_expiration']
+    lure_id = data['lure_id']
+    updated = data['updated']
+    last_modified = data['last_modified']
+    if 'url' in data:
+        url = data['url']
+        if "http:" in url:
+            url = url.replace("http:","https:")
+    else:
+        url = ''
+    if 'incident_start' in data:
+        incident_start = data['incident_start']
+    else:
+        incident_start = ''
+    if 'incident_expiration' in data:
+        incident_expiration = data['incident_expiration']
+    else:
+        incident_expiration = ''
+
+    get_pokestop_id_query = "SELECT id, name, url FROM pokestops WHERE external_id='" + str(external_id) + "';"
+
+    insert_pokestop_query = "INSERT INTO pokestops(external_id, lat, lon, name, url, updated) VALUES ('" + str(external_id) + "', '" + str(latitude) + "', '" + str(longitude) + "', '" + str(name) + "', '" + str(url) + "', '" + str(timestamp) + "');"
+
+    #Check if pokestop exists, if not insert new one
+    try:
+        database.ping(True)
+        cursor.execute(get_pokestop_id_query)
+        ps_count = cursor.rowcount
+
+        database.commit()
+    except:
+        database.rollback()
+
+    if not ( ps_count ): #If 0 records are returned, must be a new pokestop
+        if ( POKESTOP_DEBUG ):
+            print("POKESTOP NOT FOUND. Inserting new pokestop: " + str(name) + " Lat: " + str(latitude) + " Lon: " + str(longitude))
+            logging.debug("POKESTOP NOT FOUND. Inserting new pokestop: " + str(name) + " Lat: " + str(latitude) + " Lon: " + str(longitude))
+        
+        try:
+            database.ping(True)
+            cursor.execute(insert_pokestop_query)
+            database.commit()
+        except:
+            database.rollback()
+
+    #Get pokestop_id now
+    try:
+        database.ping(True)
+        cursor.execute(get_pokestop_id_query)
+        ps_data = cursor.fetchall()
+    
+        database.commit()
+    except:
+        database.rollback()
+
+    pokestop_id = ps_data[0][0]
+    pokestop_url = ps_data[0][2]
+
+    update_pokestop_url = "UPDATE pokestops SET url='" + str(url) + "' WHERE id='" + str(pokestop_id) + "';"
+
+    insert_dark_stop_query = "UPDATE pokestops SET incident_start='" + str(incident_start) + "', incident_expiration='" + str(incident_expiration) + "' WHERE id='" + str(pokestop_id) +  "';"
+
+    if pokestop_url is None and url is not None:
+        try:
+            database.ping(True)
+            cursor.execute(update_pokestop_url)
+            database.commit()
+        
+            if ( POKESTOP_DEBUG ):
+                print("POKESTOP URL UPDATED. URL: " + str(url))
+                logging.debug("POKESTOP URL UPDATED. URL: " + str(url))
+        except:
+            database.rollback()
+            if ( POKESTOP_DEBUG ):
+                print("FAILED TO UPDATE POKESTOP URL. URL: " + str(url))
+                logging.debug("FAILED TO UPDATE POKESTOP URL. URL: " + str(url))
+
+    if incident_start is not None:
+        try:
+            database.ping(True)
+            cursor.execute(insert_dark_stop_query)
+            database.commit()
+            
+            if ( POKESTOP_DEBUG ):
+                print("POKESTOP UPDATED AS DARK STOP. INCIDENT START: " + str(incident_start))
+                logging.debug("POKESTOP UPDATED AS DARK STOP. INCIDENT START: " + str(incident_start))
+        except:
+            database.rollback()
+            if ( POKESTOP_DEBUG ):
+                print("FAILED TO UPDATE POKESTOP INCIDENT START. INCIDENT START: " + str(incident_start))
+                logging.debug("FAILED TO UPDATE POKESTOP INCIDENT START. INCIDENT START: " + str(incident_start))
+    return 'Pokestop type was sent and processed.\n', 200
+
+
 @app.route('/submit', methods=['POST'])
 def webhook():
     if request.method == 'POST':
@@ -745,6 +849,7 @@ def webhook():
         gyms = []
         pokemons = []
         quests = []
+        pokestops = []
         for item in data:
             if item['type'] == "raid":
                 if item['message'] not in raids:
@@ -758,6 +863,9 @@ def webhook():
             if item['type'] == "quest":
                 if item['message'] not in quests:
                     quests.append(item['message'])
+            if item['type'] == "pokestop":
+                if item['message'] not in pokestops:
+                    pokestops.append(item['message'])
 
         if ( MAIN_DEBUG ):
             print("NUMBER OF RAIDS PROCESSED: " + str(len(raids)))
@@ -768,6 +876,8 @@ def webhook():
             logging.debug("NUMBER OF POKEMONS PROCESSED: " + str(len(pokemons)))
             print("NUMBER OF QUESTS PROCESSED: " + str(len(quests)))
             logging.debug("NUMBER OF QUESTS PROCESSED: " + str(len(quests)) + "\n")
+            print("NUMBER OF POKESTOPS PROCESSED: " + str(len(pokestops)))
+            logging.debug("NUMBER OF POKESTOPS PROCESSED: " + str(len(pokestops)) + "\n")
 
         #if ( VALID ):
         if ( len(raids) ):
@@ -782,6 +892,9 @@ def webhook():
         if ( len(quests) ):
             for quest in quests:
                 result = process_quest(quest)
+        if ( len(pokestops) ):
+            for pokestop in pokestops:
+                result = process_pokestop(pokestop)
 
         return 'DONE PROCESSING ' + str(len(data)) + ' MESSAGE(S).\n', 200
         #else:
