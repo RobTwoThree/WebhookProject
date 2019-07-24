@@ -399,7 +399,7 @@ def process_gym(data):
 
     get_gym_id_query = "SELECT id, name, url FROM forts WHERE external_id='" + str(external_id) + "';"
 
-    insert_gym_query = "INSERT INTO forts(external_id, lat, lon, name, url) VALUES ('" + str(external_id) + "','" + str(gym_lat) + "','" + str(gym_lon) + "','" + str(gym_name) + "','" + str(gym_url) + "');"
+    insert_gym_query = "INSERT INTO forts(external_id, lat, lon, name, url) VALUES ('" + str(external_id) + "','" + str(gym_lat) + "','" + str(gym_lon) + "','\"" + str(gym_name) + "\"','" + str(gym_url) + "');"
 
     if ( GYM_DEBUG ):
         print("GYM DEBUG: get_gym_id_query = " + str(get_gym_id_query))
