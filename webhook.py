@@ -209,7 +209,7 @@ def proces_raid(data):
             print("RAID Gym ID Not Found.\n")
             logging.info("RAID Gym ID Not Found.\n")
                 
-        add_gym_query = "INSERT INTO forts(external_id, lat, lon, name, url) VALUES('" + str(gym_id) + "', " +  str(gym_lat) + ", " + str(gym_lon) + ", '" + str(gym_name) + "', '" + str(gym_url) + "');"
+        add_gym_query = "INSERT INTO forts(external_id, lat, lon, name, url) VALUES('" + str(gym_id) + "', " +  str(gym_lat) + ", " + str(gym_lon) + ", \"" + str(gym_name) + "\", '" + str(gym_url) + "');"
                 
         if ( RAID_DEBUG ):
             print("RAID DEBUG: add_gym_query = " + str(add_gym_query))
@@ -472,7 +472,7 @@ def process_gym(data):
 
     fort_sightings_query = "SELECT id, fort_id FROM fort_sightings WHERE fort_id='" + str(gym_id_2) + "';"
 
-    update_fort_name_query = "UPDATE forts SET name='" + str(gym_name) + "' WHERE external_id='" + str(external_id) + "';"
+    update_fort_name_query = "UPDATE forts SET name=\"" + str(gym_name) + "\" WHERE external_id='" + str(external_id) + "';"
 
     update_fort_url_query = "UPDATE forts SET url='" + str(gym_url) + "' WHERE external_id='" + str(external_id) + "';"
 
@@ -590,7 +590,7 @@ def process_quest(data):
 
     get_pokestop_id_query = "SELECT id, name, url FROM pokestops WHERE external_id='" + str(external_id) + "';"
 
-    insert_pokestop_query = "INSERT INTO pokestops(external_id, lat, lon, name, url, updated) VALUES ('" + str(external_id) + "', '" + str(latitude) + "', '" + str(longitude) + "', '" + str(name) + "', '" + str(url) + "', '" + str(timestamp) + "');"
+    insert_pokestop_query = "INSERT INTO pokestops(external_id, lat, lon, name, url, updated) VALUES ('" + str(external_id) + "', '" + str(latitude) + "', '" + str(longitude) + "', \"" + str(name) + "\", '" + str(url) + "', '" + str(timestamp) + "');"
 
     if ( QUEST_DEBUG ):
         print("QUEST DEBUG: get_pokestop_id_query = " + str(get_pokestop_id_query))
@@ -741,7 +741,7 @@ def process_pokestop(data):
 
     get_pokestop_id_query = "SELECT id, name, url FROM pokestops WHERE external_id='" + str(external_id) + "';"
 
-    insert_pokestop_query = "INSERT INTO pokestops(external_id, lat, lon, name, url, updated) VALUES ('" + str(external_id) + "', '" + str(latitude) + "', '" + str(longitude) + "', '" + str(name) + "', '" + str(url) + "', '" + str(timestamp) + "');"
+    insert_pokestop_query = "INSERT INTO pokestops(external_id, lat, lon, name, url, updated) VALUES ('" + str(external_id) + "', '" + str(latitude) + "', '" + str(longitude) + "', \"" + str(name) + "\", '" + str(url) + "', '" + str(timestamp) + "');"
 
     #Check if pokestop exists, if not insert new one
     try:
