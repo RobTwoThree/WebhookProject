@@ -739,9 +739,19 @@ def process_pokestop(data):
     else:
         incident_expiration = ''
 
+    if ( POKESTOP_DEBUG ):
+        print("POKESTOP DEBUG: DATA LOADED SUCCESSFULLY.")
+        logging.debug("POKESTOP DEBUG: DATA LOADED SUCCESSFULLY.")
+
     get_pokestop_id_query = "SELECT id, name, url FROM pokestops WHERE external_id='" + str(external_id) + "';"
 
-    insert_pokestop_query = "INSERT INTO pokestops(external_id, lat, lon, name, url, updated) VALUES ('" + str(external_id) + "', '" + str(latitude) + "', '" + str(longitude) + "', \"" + str(name) + "\", '" + str(url) + "', '" + str(timestamp) + "');"
+    insert_pokestop_query = "INSERT INTO pokestops(external_id, lat, lon, name, url, updated) VALUES ('" + str(external_id) + "', '" + str(latitude) + "', '" + str(longitude) + "', \"" + str(pokestop_name) + "\", '" + str(url) + "', '" + str(updated) + "');"
+
+    if ( POKESTOP_DEBUG ):
+        print("POKESTOP DEBUG: get_pokestop_id_query = " + str(get_pokestop_id_query))
+        logging.debug("POKESTOP DEBUG: get_pokestop_id_query = " + str(get_pokestop_id_query))
+        print("POKESTOP DEBUG: insert_pokestop_query = " + str(insert_pokestop_query))
+        logging.debug("POKESTOP DEBUG: insert_pokestop_query = " + str(insert_pokestop_query))
 
     #Check if pokestop exists, if not insert new one
     try:
@@ -753,10 +763,14 @@ def process_pokestop(data):
     except:
         database.rollback()
 
+    if ( POKESTOP_DEBUG ):
+        print("POKESTOP DEBUG: ps_count = " + str(ps_count))
+        logging.debug("POKESTOP DEBUG: ps_count = " + str(ps_count))
+
     if not ( ps_count ): #If 0 records are returned, must be a new pokestop
         if ( POKESTOP_DEBUG ):
-            print("POKESTOP NOT FOUND. Inserting new pokestop: " + str(name) + " Lat: " + str(latitude) + " Lon: " + str(longitude))
-            logging.debug("POKESTOP NOT FOUND. Inserting new pokestop: " + str(name) + " Lat: " + str(latitude) + " Lon: " + str(longitude))
+            print("POKESTOP NOT FOUND. Inserting new pokestop: " + str(pokestop_name) + " Lat: " + str(latitude) + " Lon: " + str(longitude))
+            logging.debug("POKESTOP NOT FOUND. Inserting new pokestop: " + str(pokestop_name) + " Lat: " + str(latitude) + " Lon: " + str(longitude))
         
         try:
             database.ping(True)
@@ -882,7 +896,7 @@ def webhook():
             print("NUMBER OF POKEMONS PROCESSED: " + str(len(pokemons)))
             logging.debug("NUMBER OF POKEMONS PROCESSED: " + str(len(pokemons)))
             print("NUMBER OF QUESTS PROCESSED: " + str(len(quests)))
-            logging.debug("NUMBER OF QUESTS PROCESSED: " + str(len(quests)) + "\n")
+            logging.debug("NUMBER OF QUESTS PROCESSED: " + str(len(quests)))
             print("NUMBER OF POKESTOPS PROCESSED: " + str(len(pokestops)))
             logging.debug("NUMBER OF POKESTOPS PROCESSED: " + str(len(pokestops)) + "\n")
 
