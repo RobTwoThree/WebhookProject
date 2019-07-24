@@ -743,7 +743,7 @@ def process_pokestop(data):
         print("POKESTOP DEBUG: DATA LOADED SUCCESSFULLY.")
         logging.debug("POKESTOP DEBUG: DATA LOADED SUCCESSFULLY.")
 
-    get_pokestop_id_query = "SELECT id, name, url FROM pokestops WHERE external_id='" + str(external_id) + "';"
+    get_pokestop_id_query = "SELECT id, name, url, incident_expiration FROM pokestops WHERE external_id='" + str(external_id) + "';"
 
     insert_pokestop_query = "INSERT INTO pokestops(external_id, lat, lon, name, url, updated) VALUES ('" + str(external_id) + "', '" + str(latitude) + "', '" + str(longitude) + "', \"" + str(pokestop_name) + "\", '" + str(url) + "', '" + str(updated) + "');"
 
@@ -789,14 +789,16 @@ def process_pokestop(data):
     except:
         database.rollback()
 
-    pokestop_id = ps_data[0][0]
-    pokestop_url = ps_data[0][2]
+    stored_pokestop_id = ps_data[0][0]
+    stored_pokestop_url = ps_data[0][2]
+    stored_pokestop_incident_expiration = ps_data[0][3]
 
-    update_pokestop_url = "UPDATE pokestops SET url='" + str(url) + "' WHERE id='" + str(pokestop_id) + "';"
+    update_pokestop_url = "UPDATE pokestops SET url='" + str(url) + "' WHERE id='" + str(stored_pokestop_id) + "';"
 
-    insert_dark_stop_query = "UPDATE pokestops SET incident_start='" + str(incident_start) + "', incident_expiration='" + str(incident_expiration) + "' WHERE id='" + str(pokestop_id) +  "';"
+    update_dark_stop_query = "UPDATE pokestops SET incident_start='" + str(incident_start) + "', incident_expiration='" + str(incident_expiration) + "' WHERE id='" + str(stored_pokestop_id) +  "';"
 
-    if pokestop_url is None and url is not None:
+    #Check to see if stored Pokestop has URL, if not update the URL
+    if stored_pokestop_url is None and url is not None:
         try:
             database.ping(True)
             cursor.execute(update_pokestop_url)
@@ -811,10 +813,22 @@ def process_pokestop(data):
                 print("FAILED TO UPDATE POKESTOP URL. URL: " + str(url))
                 logging.debug("FAILED TO UPDATE POKESTOP URL. URL: " + str(url))
 
-    if incident_start is not None:
+    if ( POKESTOP_DEBUG ):
+        print("POKESTOP DEBUG: stored_pokestop_id = " + str(stored_pokestop_id))
+        logging.debug("POKESTOP DEBUG: stored_pokestop_id = " + str(stored_pokestop_id))
+        print("POKESTOP DEBUG: stored_pokestop_url = " + str(stored_pokestop_url))
+        logging.debug("POKESTOP DEBUG: stored_pokestop_url = " + str(stored_pokestop_url))
+        print("POKESTOP DEBUG: stored_pokestop_incident_expiration = " + str(stored_pokestop_incident_expiration))
+        logging.debug("POKESTOP DEBUG: stored_pokestop_incident_expiration = " + str(stored_pokestop_incident_expiration))
+        print("POKESTOP DEBUG: incident_expiration = " + str(incident_expiration))
+        logging.debug("POKESTOP DEBUG: incident_expiration = " + str(incident_expiration))
+
+    #Check if incident_expiration is not None and incident_exipiration > the stored incident_expiration
+    #If true then update Pokestop and generate notification
+    if incident_expiration is not None and ( int(incident_expiration) > int(stored_pokestop_incident_expiration) ):
         try:
             database.ping(True)
-            cursor.execute(insert_dark_stop_query)
+            cursor.execute(update_dark_stop_query)
             database.commit()
             
             if ( POKESTOP_DEBUG ):
