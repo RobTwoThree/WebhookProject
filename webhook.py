@@ -446,6 +446,7 @@ def process_gym(data):
         database.ping(True)
         cursor.execute(get_gym_id_query)
         fort_data = cursor.fetchall()
+        fort_count_2 = cursor.rowcount
 
         database.commit()
     except:
@@ -459,6 +460,8 @@ def process_gym(data):
     if ( GYM_DEBUG ):
         print("GYM DEBUG: gym_id_2 = " + str(gym_id_2) + " gym_name_2 = " + str(gym_name_2) + " gym_url_2 = " + str(gym_url_2))
         logging.debug("GYM DEBUG: gym_id_2 = " + str(gym_id_2) + " gym_name_2 = " + str(gym_name_2) + " gym_url_2 = " + str(gym_url_2))
+        print("fort_count_2 = " + str(fort_count_2))
+        logging.debug("fort_count_2 = " + str(fort_count_2))
 
     insert_fort_sighting_query = "INSERT INTO fort_sightings(fort_id, last_modified, team, guard_pokemon_id, slots_available, updated) VALUES ('" + str(gym_id_2) + "','" + str(last_modified) + "','" + str(gym_team) + "','" + str(guard_pokemon_id) +  "','" + str(slots_available) + "','" + str(current_epoch_time) + "');"
 
