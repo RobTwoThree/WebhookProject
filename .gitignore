@@ -4,3 +4,4 @@ __pycache__/config.cpython-36.pyc
 debug_webhook.log
 *.swp
 test.json
+*.pyc
