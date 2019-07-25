@@ -7,6 +7,7 @@ import time
 import logging
 from flask import Flask, request, abort
 from config import HOST, PORT, DB_HOST, DB_USER, DB_PASSWORD, DATABASE, MAIN_DEBUG, SHOW_PAYLOAD, RAID_DEBUG, GYM_DEBUG, POKEMON_DEBUG, QUEST_DEBUG, POKESTOP_DEBUG, WHITELIST
+from discord_notifications import notify
 
 logging.basicConfig(filename='debug_webhook.log',level=logging.DEBUG)
 
@@ -743,7 +744,7 @@ def process_pokestop(data):
         print("POKESTOP DEBUG: DATA LOADED SUCCESSFULLY.")
         logging.debug("POKESTOP DEBUG: DATA LOADED SUCCESSFULLY.")
 
-    get_pokestop_id_query = "SELECT id, name, url, incident_expiration FROM pokestops WHERE external_id='" + str(external_id) + "';"
+    get_pokestop_id_query = "SELECT id, name, url, lat, lon, incident_start, incident_expiration FROM pokestops WHERE external_id='" + str(external_id) + "';"
 
     insert_pokestop_query = "INSERT INTO pokestops(external_id, lat, lon, name, url, updated) VALUES ('" + str(external_id) + "', '" + str(latitude) + "', '" + str(longitude) + "', \"" + str(pokestop_name) + "\", '" + str(url) + "', '" + str(updated) + "');"
 
@@ -790,8 +791,12 @@ def process_pokestop(data):
         database.rollback()
 
     stored_pokestop_id = ps_data[0][0]
+    stored_pokestop_name = ps_data[0][1]
     stored_pokestop_url = ps_data[0][2]
-    stored_pokestop_incident_expiration = ps_data[0][3]
+    stored_pokestop_lat = ps_data[0][3]
+    stored_pokestop_lon = ps_data[0][4]
+    stored_pokestop_incident_start = ps_data[0][5]
+    stored_pokestop_incident_expiration = ps_data[0][6]
 
     update_pokestop_url = "UPDATE pokestops SET url='" + str(url) + "' WHERE id='" + str(stored_pokestop_id) + "';"
 
@@ -825,7 +830,7 @@ def process_pokestop(data):
 
     #Check if incident_expiration is not None and incident_exipiration > the stored incident_expiration
     #If true then update Pokestop and generate notification
-    if incident_expiration is not None and ( int(incident_expiration) > int(stored_pokestop_incident_expiration) ):
+    if incident_expiration is not None and ( stored_pokestop_incident_expiration is None or ( int(incident_expiration) > int(stored_pokestop_incident_expiration) ) ):
         try:
             database.ping(True)
             cursor.execute(update_dark_stop_query)
@@ -834,11 +839,15 @@ def process_pokestop(data):
             if ( POKESTOP_DEBUG ):
                 print("POKESTOP UPDATED AS DARK STOP. INCIDENT START: " + str(incident_start))
                 logging.debug("POKESTOP UPDATED AS DARK STOP. INCIDENT START: " + str(incident_start))
+
+            alert = notify(ps_data)
         except:
             database.rollback()
             if ( POKESTOP_DEBUG ):
                 print("FAILED TO UPDATE POKESTOP INCIDENT START. INCIDENT START: " + str(incident_start))
                 logging.debug("FAILED TO UPDATE POKESTOP INCIDENT START. INCIDENT START: " + str(incident_start))
+    else:
+        print("DUPLICATE??")
     return 'Pokestop type was sent and processed.\n', 200
 
 
