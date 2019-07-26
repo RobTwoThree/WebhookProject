@@ -829,13 +829,19 @@ def process_pokestop(data):
         logging.debug("POKESTOP DEBUG: stored_pokestop_id = " + str(stored_pokestop_id))
         print("POKESTOP DEBUG: stored_pokestop_url = " + str(stored_pokestop_url))
         logging.debug("POKESTOP DEBUG: stored_pokestop_url = " + str(stored_pokestop_url))
+        print("POKESTOP DEBUG: stored_pokestop_incident_start = " + str(stored_pokestop_incident_start))
+        logging.debug("POKESTOP DEBUG: stored_pokestop_incident_start = " + str(stored_pokestop_incident_start))
         print("POKESTOP DEBUG: stored_pokestop_incident_expiration = " + str(stored_pokestop_incident_expiration))
         logging.debug("POKESTOP DEBUG: stored_pokestop_incident_expiration = " + str(stored_pokestop_incident_expiration))
-        print("POKESTOP DEBUG: incident_expiration = " + str(incident_expiration))
-        logging.debug("POKESTOP DEBUG: incident_expiration = " + str(incident_expiration))
+        print("POKESTOP DEBUG: current incident_start = " + str(incident_start))
+        logging.debug("POKESTOP DEBUG: current incident_start = " + str(incident_start))
+        print("POKESTOP DEBUG: current incident_expiration = " + str(incident_expiration))
+        logging.debug("POKESTOP DEBUG: current incident_expiration = " + str(incident_expiration))
 
+    print("CURRENT TIME: " + str(calendar.timegm(datetime.datetime.utcnow().timetuple())))
+    print("EXPIRATION TIME: " + str(incident_expiration))
     if int(incident_expiration) > calendar.timegm(datetime.datetime.utcnow().timetuple()):
-        #Check if incident_expiration is not None and incident_exipiration > the stored incident_expiration
+        #Check if incident_expiration is not None and incident_expiration > the stored incident_expiration
         #If true then update Pokestop and generate notification
         if incident_expiration is not None and ( stored_pokestop_incident_expiration is None or ( int(incident_expiration) > int(stored_pokestop_incident_expiration) ) ):
             try:
@@ -846,9 +852,11 @@ def process_pokestop(data):
                 if ( POKESTOP_DEBUG ):
                     print("POKESTOP UPDATED AS DARK STOP. INCIDENT START: " + str(incident_start))
                     logging.debug("POKESTOP UPDATED AS DARK STOP. INCIDENT START: " + str(incident_start))
+                    print("POKESTOP UPDATED AS DARK STOP. INCIDENT EXPIRATION: " + str(incident_expiration))
+                    logging.debug("POKESTOP UPDATED AS DARK STOP. INCIDENT EXPIRATION: " + str(incident_expiration))
 
                 if webhook_url != '':
-                    alert = notify(ps_data)
+                    alert = notify(data)
             except:
                 database.rollback()
                 if ( POKESTOP_DEBUG ):

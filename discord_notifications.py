@@ -6,19 +6,21 @@ from config import webhook_url, google_map_api_key
 webhook = DiscordWebhook(url=webhook_url, username="PoGoSD Rocket Bot")
 
 def notify(data):
-    pokestop_id = data[0][0]
-    pokestop_name = data[0][1]
-    pokestop_url = data[0][2]
-    pokestop_lat = data[0][3]
-    pokestop_lon = data[0][4]
-    pokestop_incident_start = data[0][5]
-    pokestop_incident_expiration = data[0][6]
-
+    pokestop_id = data['pokestop_id']
+    pokestop_name = data['name']
+    pokestop_url = data['url']
+    pokestop_lat = data['latitude']
+    pokestop_lon = data['longitude']
+    pokestop_incident_start = int(data['incident_start'])
+    pokestop_incident_expiration = int(data['incident_expiration'])
+    
     pokestop_name = "**" + str(pokestop_name) + " Pokestop**"
     start_time = "**" + str(time.strftime('%I:%M %p',  time.localtime(pokestop_incident_start))) + "**"
     end_time = "**" + str(time.strftime('%I:%M %p', time.localtime(pokestop_incident_expiration))) + "**"
     map_url = "https://www.google.com/maps?q=" + str(pokestop_lat) + "," + str(pokestop_lon)
     map_image = "https://maps.googleapis.com/maps/api/staticmap?center=" + str(pokestop_lat) + "," + str(pokestop_lon) + "&zoom=13&size=300x300&maptype=roadmap&markers=color:red%7Clabel:R%7C" + str(pokestop_lat) + "," + str(pokestop_lon) + "&key=" + str(google_map_api_key)
+
+    print("LOADED DISCORD PAYLOAD.")
     
     embed = DiscordEmbed(title=pokestop_name, description='Dark Pokestop has emerged!', color=16714240)
 
