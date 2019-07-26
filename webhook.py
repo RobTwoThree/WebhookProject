@@ -6,7 +6,7 @@ import calendar
 import time
 import logging
 from flask import Flask, request, abort
-from config import HOST, PORT, DB_HOST, DB_USER, DB_PASSWORD, DATABASE, MAIN_DEBUG, SHOW_PAYLOAD, RAID_DEBUG, GYM_DEBUG, POKEMON_DEBUG, QUEST_DEBUG, POKESTOP_DEBUG, WHITELIST
+from config import HOST, PORT, DB_HOST, DB_USER, DB_PASSWORD, DATABASE, MAIN_DEBUG, SHOW_PAYLOAD, RAID_DEBUG, GYM_DEBUG, POKEMON_DEBUG, QUEST_DEBUG, POKESTOP_DEBUG, WHITELIST, webhook_url
 from discord_notifications import notify
 
 logging.basicConfig(filename='debug_webhook.log',level=logging.DEBUG)
@@ -721,10 +721,16 @@ def process_pokestop(data):
     pokestop_name = data['name']
     latitude = data['latitude']
     longitude = data['longitude']
-    lure_expiration = data['lure_expiration']
-    lure_id = data['lure_id']
     updated = data['updated']
     last_modified = data['last_modified']
+    if 'lure_expiration' in data:
+        lure_expiration = data['lure_expiration']
+    else:
+        lure_expiration = ''
+    if 'lure_id' in data:
+        lure_id = data['lure_id']
+    else:
+        lure_id = ''
     if 'url' in data:
         url = data['url']
         if "http:" in url:
@@ -840,7 +846,8 @@ def process_pokestop(data):
                 print("POKESTOP UPDATED AS DARK STOP. INCIDENT START: " + str(incident_start))
                 logging.debug("POKESTOP UPDATED AS DARK STOP. INCIDENT START: " + str(incident_start))
 
-            alert = notify(ps_data)
+            if webhook_url != '':
+                alert = notify(ps_data)
         except:
             database.rollback()
             if ( POKESTOP_DEBUG ):
