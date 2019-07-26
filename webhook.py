@@ -850,7 +850,7 @@ def process_pokestop(data):
     else:
         #Check if incident_expiration is equal to the stored incident_expiration
         #If true then its a duplicate.  Otherwise insert into db and notify.s
-        if int(incident_expiration) == int(stored_pokestop_incident_expiration):
+        if stored_pokestop_incident_expiration is not None and int(incident_expiration) == int(stored_pokestop_incident_expiration):
             print("DUPLICATE DARK POKESTOP.")
             if ( POKESTOP_DEBUG ):
                 print("POKESTOP DEBUG: DUPLICATE DETECTED: " + str(incident_expiration) + " = " + str(stored_pokestop_incident_expiration))
