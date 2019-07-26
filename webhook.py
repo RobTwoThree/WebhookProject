@@ -803,6 +803,7 @@ def process_pokestop(data):
     stored_pokestop_lon = ps_data[0][4]
     stored_pokestop_incident_start = ps_data[0][5]
     stored_pokestop_incident_expiration = ps_data[0][6]
+    current_epoch_time = calendar.timegm(datetime.datetime.utcnow().timetuple())
 
     update_pokestop_url = "UPDATE pokestops SET url='" + str(url) + "' WHERE id='" + str(stored_pokestop_id) + "';"
 
@@ -838,53 +839,41 @@ def process_pokestop(data):
         print("POKESTOP DEBUG: current incident_expiration = " + str(incident_expiration))
         logging.debug("POKESTOP DEBUG: current incident_expiration = " + str(incident_expiration))
 
-    print("CURRENT TIME: " + str(calendar.timegm(datetime.datetime.utcnow().timetuple())))
+    print("CURRENT TIME: " + str(current_epoch_time))
     print("EXPIRATION TIME: " + str(incident_expiration))
-    if int(incident_expiration) > calendar.timegm(datetime.datetime.utcnow().timetuple()):
-        #Check if incident_expiration is not None and incident_expiration > the stored incident_expiration
-        #If true then update Pokestop and generate notification
-        if incident_expiration is not None and stored_pokestop_incident_expiration is None:
-            try:
-                database.ping(True)
-                cursor.execute(update_dark_stop_query)
-                database.commit()
-                
-                if ( POKESTOP_DEBUG ):
-                    print("POKESTOP UPDATED AS DARK STOP. INCIDENT START: " + str(incident_start))
-                    logging.debug("POKESTOP UPDATED AS DARK STOP. INCIDENT START: " + str(incident_start))
-                    print("POKESTOP UPDATED AS DARK STOP. INCIDENT EXPIRATION: " + str(incident_expiration))
-                    logging.debug("POKESTOP UPDATED AS DARK STOP. INCIDENT EXPIRATION: " + str(incident_expiration))
-
-                if webhook_url != '':
-                    alert = notify(data)
-            except:
-                database.rollback()
-                if ( POKESTOP_DEBUG ):
-                    print("FAILED TO UPDATE POKESTOP INCIDENT START. INCIDENT START: " + str(incident_start))
-                    logging.debug("FAILED TO UPDATE POKESTOP INCIDENT START. INCIDENT START: " + str(incident_start))
-        elif incident_expiration is not None and ( int(incident_expiration) > int(stored_pokestop_incident_expiration) ):
-            try:
-                database.ping(True)
-                cursor.execute(update_dark_stop_query)
-                database.commit()
-                
-                if ( POKESTOP_DEBUG ):
-                    print("POKESTOP UPDATED AS DARK STOP. INCIDENT START: " + str(incident_start))
-                    logging.debug("POKESTOP UPDATED AS DARK STOP. INCIDENT START: " + str(incident_start))
-                    print("POKESTOP UPDATED AS DARK STOP. INCIDENT EXPIRATION: " + str(incident_expiration))
-                    logging.debug("POKESTOP UPDATED AS DARK STOP. INCIDENT EXPIRATION: " + str(incident_expiration))
-
-                if webhook_url != '':
-                    alert = notify(data)
-            except:
-                database.rollback()
-                if ( POKESTOP_DEBUG ):
-                    print("FAILED TO UPDATE POKESTOP INCIDENT START. INCIDENT START: " + str(incident_start))
-                    logging.debug("FAILED TO UPDATE POKESTOP INCIDENT START. INCIDENT START: " + str(incident_start))
-        else:
-            print("DUPLICATE??")
-    else:
+    #Check if incident_expiration has expired, if it has then skip
+    if int(incident_expiration) < int(current_epoch_time):
         print("DARK POKESTOP ALREADY EXPIRED. SKIP!")
+        if ( POKESTOP_DEBUG ):
+            print("POKESTOP DEBUG: DARK POKESTOP ALREADY EXPIRED: " + str(incident_expiration) + " < " + str(current_epoch_time))
+            logging.debug("POKESTOP DEBUG: DARK POKESTOP ALREADY EXPIRED: " + str(incident_expiration) + " < " + str(current_epoch_time))
+    else:
+        #Check if incident_expiration is equal to the stored incident_expiration
+        #If true then its a duplicate.  Otherwise insert into db and notify.s
+        if int(incident_expiration) == int(stored_pokestop_incident_expiration):
+            print("DUPLICATE DARK POKESTOP.")
+            if ( POKESTOP_DEBUG ):
+                print("POKESTOP DEBUG: DUPLICATE DETECTED: " + str(incident_expiration) + " = " + str(stored_pokestop_incident_expiration))
+                logging.debug("POKESTOP DEBUG: DUPLICATE DETECTED: " + str(incident_expiration) + " = " + str(stored_pokestop_incident_expiration))
+        else:
+            try:
+                database.ping(True)
+                cursor.execute(update_dark_stop_query)
+                database.commit()
+                
+                if ( POKESTOP_DEBUG ):
+                    print("POKESTOP UPDATED AS DARK STOP. INCIDENT START: " + str(incident_start))
+                    logging.debug("POKESTOP UPDATED AS DARK STOP. INCIDENT START: " + str(incident_start))
+                    print("POKESTOP UPDATED AS DARK STOP. INCIDENT EXPIRATION: " + str(incident_expiration))
+                    logging.debug("POKESTOP UPDATED AS DARK STOP. INCIDENT EXPIRATION: " + str(incident_expiration))
+
+                if webhook_url != '':
+                    alert = notify(data)
+            except:
+                database.rollback()
+                if ( POKESTOP_DEBUG ):
+                    print("FAILED TO UPDATE POKESTOP INCIDENT START. INCIDENT START: " + str(incident_start))
+                    logging.debug("FAILED TO UPDATE POKESTOP INCIDENT START. INCIDENT START: " + str(incident_start))
           
     return 'Pokestop type was sent and processed.\n', 200
 

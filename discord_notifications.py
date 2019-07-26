@@ -47,5 +47,5 @@ def notify(data):
     webhook.add_embed(embed)
     
     webhook.execute()
-    print("Discord notification sent for: " + str(pokestop_name) + " START: " + str(start_time) + " END: " + str(end_time))
+    print("DISCORD NOTIFICATION SENT FOR: " + str(pokestop_name) + " START: " + str(start_time) + " END: " + str(end_time))
     return 'Discord notification sent.', 200
