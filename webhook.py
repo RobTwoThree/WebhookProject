@@ -843,7 +843,26 @@ def process_pokestop(data):
     if int(incident_expiration) > calendar.timegm(datetime.datetime.utcnow().timetuple()):
         #Check if incident_expiration is not None and incident_expiration > the stored incident_expiration
         #If true then update Pokestop and generate notification
-        if incident_expiration is not None and ( stored_pokestop_incident_expiration is None or ( int(incident_expiration) > int(stored_pokestop_incident_expiration) ) ):
+        if incident_expiration is not None and stored_pokestop_incident_expiration is None:
+            try:
+                database.ping(True)
+                cursor.execute(update_dark_stop_query)
+                database.commit()
+                
+                if ( POKESTOP_DEBUG ):
+                    print("POKESTOP UPDATED AS DARK STOP. INCIDENT START: " + str(incident_start))
+                    logging.debug("POKESTOP UPDATED AS DARK STOP. INCIDENT START: " + str(incident_start))
+                    print("POKESTOP UPDATED AS DARK STOP. INCIDENT EXPIRATION: " + str(incident_expiration))
+                    logging.debug("POKESTOP UPDATED AS DARK STOP. INCIDENT EXPIRATION: " + str(incident_expiration))
+
+                if webhook_url != '':
+                    alert = notify(data)
+            except:
+                database.rollback()
+                if ( POKESTOP_DEBUG ):
+                    print("FAILED TO UPDATE POKESTOP INCIDENT START. INCIDENT START: " + str(incident_start))
+                    logging.debug("FAILED TO UPDATE POKESTOP INCIDENT START. INCIDENT START: " + str(incident_start))
+        elif incident_expiration is not None and ( int(incident_expiration) > int(stored_pokestop_incident_expiration) ):
             try:
                 database.ping(True)
                 cursor.execute(update_dark_stop_query)
