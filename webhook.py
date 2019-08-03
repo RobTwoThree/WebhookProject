@@ -829,6 +829,8 @@ def process_pokestop(data):
             if ( POKESTOP_DEBUG ):
                 print("FAILED TO UPDATE POKESTOP URL. URL: " + str(url))
                 logging.debug("FAILED TO UPDATE POKESTOP URL. URL: " + str(url))
+                print("POKESTOP DEBUG: update_dark_stop_query: " + str(update_dark_stop_query))
+                logging.debug("POKESTOP DEBUG: update_dark_stop_query: " + str(update_dark_stop_query))
 
     if ( POKESTOP_DEBUG ):
         print("POKESTOP DEBUG: stored_pokestop_id = " + str(stored_pokestop_id))
@@ -889,6 +891,8 @@ def process_pokestop(data):
                     if ( POKESTOP_DEBUG ):
                         print("FAILED TO UPDATE POKESTOP INCIDENT START. INCIDENT START: " + str(incident_start))
                         logging.debug("FAILED TO UPDATE POKESTOP INCIDENT START. INCIDENT START: " + str(incident_start))
+                        print("POKESTOP DEBUG: update_dark_stop_query: " + str(update_dark_stop_query))
+                        logging.debug("POKESTOP DEBUG: update_dark_stop_query: " + str(update_dark_stop_query))
           
     return 'Pokestop type was sent and processed.\n', 200
 
