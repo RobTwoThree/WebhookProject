@@ -745,12 +745,16 @@ def process_pokestop(data):
         incident_expiration = data['incident_expiration']
     else:
         incident_expiration = ''
+    if 'incident_grutnt_type' in data:
+        incident_grunt_type = data['incident_grunt_type']
+    else:
+        incident_grunt_type = ''
 
     if ( POKESTOP_DEBUG ):
         print("POKESTOP DEBUG: DATA LOADED SUCCESSFULLY.")
         logging.debug("POKESTOP DEBUG: DATA LOADED SUCCESSFULLY.")
 
-    get_pokestop_id_query = "SELECT id, name, url, lat, lon, incident_start, incident_expiration FROM pokestops WHERE external_id='" + str(external_id) + "';"
+    get_pokestop_id_query = "SELECT id, name, url, lat, lon, incident_start, incident_expiration, incident_grunt_type FROM pokestops WHERE external_id='" + str(external_id) + "';"
 
     insert_pokestop_query = "INSERT INTO pokestops(external_id, lat, lon, name, url, updated) VALUES ('" + str(external_id) + "', '" + str(latitude) + "', '" + str(longitude) + "', \"" + str(pokestop_name) + "\", '" + str(url) + "', '" + str(updated) + "');"
 
@@ -803,11 +807,12 @@ def process_pokestop(data):
     stored_pokestop_lon = ps_data[0][4]
     stored_pokestop_incident_start = ps_data[0][5]
     stored_pokestop_incident_expiration = ps_data[0][6]
+    stored_pokestop_incident_grunt_type = ps_data[0][7]
     current_epoch_time = calendar.timegm(datetime.datetime.utcnow().timetuple())
 
     update_pokestop_url = "UPDATE pokestops SET url='" + str(url) + "' WHERE id='" + str(stored_pokestop_id) + "';"
 
-    update_dark_stop_query = "UPDATE pokestops SET incident_start='" + str(incident_start) + "', incident_expiration='" + str(incident_expiration) + "' WHERE id='" + str(stored_pokestop_id) +  "';"
+    update_dark_stop_query = "UPDATE pokestops SET incident_start='" + str(incident_start) + "', incident_expiration='" + str(incident_expiration) + "', incident_grunt_type='" + str(incident_grunt_type) + "' WHERE id='" + str(stored_pokestop_id) +  "';"
 
     #Check to see if stored Pokestop has URL, if not update the URL
     if stored_pokestop_url is None and url is not None:
@@ -838,9 +843,12 @@ def process_pokestop(data):
         logging.debug("POKESTOP DEBUG: current incident_start = " + str(incident_start))
         print("POKESTOP DEBUG: current incident_expiration = " + str(incident_expiration))
         logging.debug("POKESTOP DEBUG: current incident_expiration = " + str(incident_expiration))
+        print("POKESTOP DEBUG: current incident_grunt_type = " + str(incident_grunt_type))
+        logging.debug("POKESTOP DEBUG: current incident_expiration = " + str(incident_grunt_type))
 
     print("CURRENT TIME: " + str(current_epoch_time))
     print("EXPIRATION TIME: " + str(incident_expiration))
+    print("GRUNT TYPE: " + str(incident_grunt_type))
 
     #Check if incident_expiration is null, if it is, pass.
     if incident_expiration == '':
@@ -871,6 +879,8 @@ def process_pokestop(data):
                         logging.debug("POKESTOP UPDATED AS DARK STOP. INCIDENT START: " + str(incident_start))
                         print("POKESTOP UPDATED AS DARK STOP. INCIDENT EXPIRATION: " + str(incident_expiration))
                         logging.debug("POKESTOP UPDATED AS DARK STOP. INCIDENT EXPIRATION: " + str(incident_expiration))
+                        print("POKESTOP UPDATED AS DARK STOP. INCIDENT GRUNT TYPE: " + str(incident_grunt_type))
+                        logging.debug("POKESTOP UPDATED AS DARK STOP. INCIDENT GRUNT TYPE: " + str(incident_grunt_type))
 
                     if webhook_url != '':
                         alert = notify(data)
