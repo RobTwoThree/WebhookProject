@@ -748,7 +748,7 @@ def process_pokestop(data):
     if 'incident_grutnt_type' in data:
         incident_grunt_type = data['incident_grunt_type']
     else:
-        incident_grunt_type = ''
+        incident_grunt_type = 0
 
     if ( POKESTOP_DEBUG ):
         print("POKESTOP DEBUG: DATA LOADED SUCCESSFULLY.")
