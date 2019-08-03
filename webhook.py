@@ -745,7 +745,7 @@ def process_pokestop(data):
         incident_expiration = data['incident_expiration']
     else:
         incident_expiration = ''
-    if 'incident_grutnt_type' in data:
+    if 'incident_grunt_type' in data:
         incident_grunt_type = data['incident_grunt_type']
     else:
         incident_grunt_type = 0
