@@ -668,8 +668,11 @@ def process_quest(data):
 
     if ( QUEST_DEBUG ):
         print("QUEST DEBUG: insert_quest_query = " + str(insert_quest_query))
+        logging.debug("QUEST DEBUG: insert_quest_query = " + str(insert_quest_query))
         print("QUEST DEBUG: update_quest_query = " + str(update_quest_query))
+        logging.debug("QUEST DEBUG: update_quest_query = " + str(update_quest_query))
         print("QUEST DEBUG: quests_query = " + str(quests_query))
+        logging.debug("QUEST DEBUG: quests_query = " + str(quests_query))
 
     #Check if quest entry exists
     try:
