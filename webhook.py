@@ -377,7 +377,7 @@ def process_gym(data):
     if 'name' in data:
         gym_name = data['name']
         if "\"" in gym_name:
-            gym_name = gym_name.replace("\"","\'")
+            gym_name = gym_name.replace("\"","\\\"")
         elif "'" in gym_name:
             gym_name = gym_name.replace("'","\'")
     else:
