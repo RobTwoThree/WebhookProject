@@ -847,10 +847,12 @@ def process_pokestop(data):
         logging.debug("POKESTOP DEBUG: current incident_expiration = " + str(incident_expiration))
         print("POKESTOP DEBUG: current incident_grunt_type = " + str(incident_grunt_type))
         logging.debug("POKESTOP DEBUG: current incident_expiration = " + str(incident_grunt_type))
-
-    print("CURRENT TIME: " + str(current_epoch_time))
-    print("EXPIRATION TIME: " + str(incident_expiration))
-    print("GRUNT TYPE: " + str(incident_grunt_type))
+        print("CURRENT TIME: " + str(current_epoch_time))
+        logging.debug("CURRENT TIME: " + str(current_epoch_time))
+        print("EXPIRATION TIME: " + str(incident_expiration))
+        logging.debug("EXPIRATION TIME: " + str(incident_expiration))
+        print("GRUNT TYPE: " + str(incident_grunt_type))
+        logging.debug("GRUNT TYPE: " + str(incident_grunt_type))
 
     #Check if incident_expiration is null, if it is, pass.
     if incident_expiration == '':
@@ -858,16 +860,20 @@ def process_pokestop(data):
     else:
         #Check if incident_expiration has expired, if it has then skip
         if int(incident_expiration) < int(current_epoch_time):
-            print("DARK POKESTOP ALREADY EXPIRED. SKIP!")
+          
             if ( POKESTOP_DEBUG ):
+                print("DARK POKESTOP ALREADY EXPIRED. SKIP!")
+                logging.debug("DARK POKESTOP ALREADY EXPIRED. SKIP!")
                 print("POKESTOP DEBUG: DARK POKESTOP ALREADY EXPIRED: " + str(incident_expiration) + " < " + str(current_epoch_time))
                 logging.debug("POKESTOP DEBUG: DARK POKESTOP ALREADY EXPIRED: " + str(incident_expiration) + " < " + str(current_epoch_time))
         else:
             #Check if incident_expiration is equal to the stored incident_expiration
             #If true then its a duplicate.  Otherwise insert into db and notify.s
             if stored_pokestop_incident_expiration is not None and int(incident_expiration) == int(stored_pokestop_incident_expiration):
-                print("DUPLICATE DARK POKESTOP.")
+              
                 if ( POKESTOP_DEBUG ):
+                    print("DUPLICATE DARK POKESTOP.")
+                    logging.debug("DUPLICATE DARK POKESTOP.")
                     print("POKESTOP DEBUG: DUPLICATE DETECTED: " + str(incident_expiration) + " = " + str(stored_pokestop_incident_expiration))
                     logging.debug("POKESTOP DEBUG: DUPLICATE DETECTED: " + str(incident_expiration) + " = " + str(stored_pokestop_incident_expiration))
             else:
