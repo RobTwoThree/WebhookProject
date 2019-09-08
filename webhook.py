@@ -376,8 +376,8 @@ def process_gym(data):
     gym_lon = data['longitude']
     if 'name' in data:
         gym_name = data['name']
-        if '"' in gym_name:
-            gym_name = gym_name.replace('"','\"')
+        if "\"" in gym_name:
+            gym_name = gym_name.replace("\"","\'")
         elif "'" in gym_name:
             gym_name = gym_name.replace("'","\'")
     else:
