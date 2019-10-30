@@ -290,7 +290,7 @@ def process_pokemon(data):
     spawnpoint_id = data['spawnpoint_id']
     #time_until_hidden_ms = data['time_until_hidden_ms']
 
-    iv_pokemon_insert_query = "INSERT INTO sightings(pokemon_id, gender, form, weather_boosted_condition, spawn_id, expire_timestamp, encounter_id, lat, lon, atk_iv, def_iv, sta_iv, cp, level, weight, move_1, move_2) VALUES(" + str(pokemon_id) + ", " + str(gender) + ", " + str(form) + ", " + str(boosted_weather) + ", " + str(spawnpoint_id) + ", " + str(disappear_time) + ", " + str(encounter_id) + ", " + str(latitude) + ", " + str(longitude) + ", " + str(atk_iv) + ", " + str(def_iv) + ", " + str(sta_iv) + ", " + str(cp) + ", " + str(level) + ", " + str(weight) + ", " + str(move_1) + ", " + str(move_2) + ");"
+    iv_pokemon_insert_query = "INSERT INTO sightings(pokemon_id, gender, form, weather_boosted_condition, spawn_id, expire_timestamp, encounter_id, lat, lon, atk_iv, def_iv, sta_iv, cp, level, weight, move_1, move_2, updated) VALUES(" + str(pokemon_id) + ", " + str(gender) + ", " + str(form) + ", " + str(boosted_weather) + ", " + str(spawnpoint_id) + ", " + str(disappear_time) + ", " + str(encounter_id) + ", " + str(latitude) + ", " + str(longitude) + ", " + str(atk_iv) + ", " + str(def_iv) + ", " + str(sta_iv) + ", " + str(cp) + ", " + str(level) + ", " + str(weight) + ", " + str(move_1) + ", " + str(move_2) + ", " + str(calendar.timegm(current_time.timetuple())) + ");"
 
     update_pokemon_query = "UPDATE sightings SET atk_iv='" + str(atk_iv) + "', def_iv='" + str(def_iv) + "', sta_iv='" + str(sta_iv) + "', cp='" + str(cp) + "', level='" + str(level) + "', weight='" + str(weight) + "', move_1='" + str(move_1) + "', move_2='" + str(move_2) + "' WHERE encounter_id='" + str(encounter_id) + "';"
 
