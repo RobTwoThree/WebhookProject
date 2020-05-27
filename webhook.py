@@ -50,16 +50,16 @@ def proces_raid(data):
             boss_move_2 = data['move_2']
             form = data['form']
         else:
-            boss_cp = "null"
+            boss_cp = 0
             boss_move_1 = 0
             boss_move_2 = 0
-            form = "null"
+            form = 0
     else:
         boss_id = 0
-        boss_cp = "null"
+        boss_cp = 0
         boss_move_1 = 0
         boss_move_2 = 0
-        form = "null"
+        form = 0
 
     gym_id_query = "SELECT id FROM forts WHERE external_id='" + str(gym_id) + "';"
     database.ping(True)
