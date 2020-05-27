@@ -51,14 +51,14 @@ def proces_raid(data):
             form = data['form']
         else:
             boss_cp = "null"
-            boss_move_1 = "null"
-            boss_move_2 = "null"
+            boss_move_1 = 0
+            boss_move_2 = 0
             form = "null"
     else:
         boss_id = 0
         boss_cp = "null"
-        boss_move_1 = "null"
-        boss_move_2 = "null"
+        boss_move_1 = 0
+        boss_move_2 = 0
         form = "null"
 
     gym_id_query = "SELECT id FROM forts WHERE external_id='" + str(gym_id) + "';"
