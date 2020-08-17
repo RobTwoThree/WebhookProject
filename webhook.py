@@ -5,8 +5,9 @@ import pytz
 import calendar
 import time
 import logging
+import requests
 from flask import Flask, request, abort
-from config import HOST, PORT, DB_HOST, DB_USER, DB_PASSWORD, DATABASE, MAIN_DEBUG, SHOW_PAYLOAD, RAID_DEBUG, GYM_DEBUG, POKEMON_DEBUG, QUEST_DEBUG, POKESTOP_DEBUG, WHITELIST, webhook_url
+from config import HOST, PORT, DB_HOST, DB_USER, DB_PASSWORD, DATABASE, MAIN_DEBUG, SHOW_PAYLOAD, RAID_DEBUG, GYM_DEBUG, POKEMON_DEBUG, QUEST_DEBUG, POKESTOP_DEBUG, WHITELIST, webhook_url, pokealarm_url, pokealarm_port
 from discord_notifications import notify
 
 logging.basicConfig(filename='debug_webhook.log',level=logging.DEBUG)
@@ -912,12 +913,24 @@ def process_pokestop(data):
 
 @app.route('/submit', methods=['POST'])
 def webhook():
+
     if request.method == 'POST':
         utc_now = pytz.utc.localize(datetime.datetime.utcnow())
         pst_now = utc_now.astimezone(pytz.timezone("America/Los_Angeles"))
         data = json.loads(request.data)
         payload = str(request.json)
         utf_payload = payload.encode('utf-8')
+
+        if (pokealarm_url and pokealarm_port):
+            headers = {'Content-type': 'application/json', 'Accept':'text/plain'}
+            pa_url = str(pokealarm_url) + ':' + str(pokealarm_port)
+            print("FORWARDED DATA TO:" + str(pa_url))
+            try:
+                r = requests.post(pa_url, data=json.dumps(data), headers=headers)
+                print("STATUS CODE: " + str(r.status_code))
+            except:
+                print("ERROR. STATUS CODE: " + str(r.status_code))
+            
 
         #ip_address = request.remote_addr
         ip_address_raw = request.environ.get('HTTP_X_FORWARDED_FOR')
