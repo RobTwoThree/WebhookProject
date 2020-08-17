@@ -7,7 +7,7 @@ import time
 import logging
 import requests
 from flask import Flask, request, abort
-from config import HOST, PORT, DB_HOST, DB_USER, DB_PASSWORD, DATABASE, MAIN_DEBUG, SHOW_PAYLOAD, RAID_DEBUG, GYM_DEBUG, POKEMON_DEBUG, QUEST_DEBUG, POKESTOP_DEBUG, WHITELIST, webhook_url, pokealarm_url, pokealarm_port
+from config import HOST, PORT, DB_HOST, DB_USER, DB_PASSWORD, DATABASE, MAIN_DEBUG, SHOW_PAYLOAD, RAID_DEBUG, GYM_DEBUG, POKEMON_DEBUG, POKEALARM_DEBUG, QUEST_DEBUG, POKESTOP_DEBUG, WHITELIST, webhook_url, pokealarm_url, pokealarm_port
 from discord_notifications import notify
 
 logging.basicConfig(filename='debug_webhook.log',level=logging.DEBUG)
@@ -924,10 +924,15 @@ def webhook():
         if (pokealarm_url and pokealarm_port):
             headers = {'Content-type': 'application/json', 'Accept':'text/plain'}
             pa_url = str(pokealarm_url) + ':' + str(pokealarm_port)
-            print("FORWARDED DATA TO:" + str(pa_url))
+            
+            if (POKEALARM_DEBUG):
+                print("FORWARDED DATA TO: " + str(pa_url))
+                print("FORWARDED MESSAGE: " + str(data))
+                
             try:
                 r = requests.post(pa_url, data=json.dumps(data), headers=headers)
-                print("STATUS CODE: " + str(r.status_code))
+                if (POKEALARM_DEBUG):
+                    print("STATUS CODE: " + str(r.status_code))
             except:
                 print("ERROR. STATUS CODE: " + str(r.status_code))
             
