@@ -1,1 +1,5 @@
-discord-webhook==0.4.1
+pytz>=2021.1
+discord_webhook>=0.13.0
+requests>=2.25.1
+Flask>=2.0.1
+mysqlclient>=2.0.3

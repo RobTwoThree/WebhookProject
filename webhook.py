@@ -926,17 +926,23 @@ def webhook():
             headers = {'Content-type': 'application/json', 'Accept':'text/plain'}
             pa_url = str(pokealarm_url) + ':' + str(pokealarm_port)
             
-            if (POKEALARM_DEBUG):
-                print("FORWARDED DATA TO: " + str(pa_url))
-                print("FORWARDED MESSAGE: " + str(data))
-                
             try:
-                r = requests.post(pa_url, data=json.dumps(data), headers=headers)
+                pa_r = requests.get(pa_url)
                 if (POKEALARM_DEBUG):
-                    print("STATUS CODE: " + str(r.status_code))
+                    print("POKEALARM STATUS: " + str(pa_r.status_code))
+                
+                if (pa_r.status_code == 200):
+                    try:
+                        r = requests.post(pa_url, data=json.dumps(data), headers=headers)
+                        if (POKEALARM_DEBUG):
+                            print("STATUS CODE: " + str(r.status_code))
+                            print("FORWARDED DATA TO: " + str(pa_url))
+                            print("FORWARDED MESSAGE: " + str(data))
+                    except:
+                        print("ERROR. STATUS CODE: " + str(r.status_code))
             except:
-                print("ERROR. STATUS CODE: " + str(r.status_code))
-            
+                if (POKEALARM_DEBUG):
+                    print("POKEALARM NOT RESPONDING. DATA NOT FORWARDED.")
 
         #ip_address = request.remote_addr
         ip_address_raw = request.environ.get('HTTP_X_FORWARDED_FOR')
