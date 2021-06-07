@@ -71,7 +71,7 @@ def proces_raid(data):
         form = 0
 
     gym_id_query = "SELECT id FROM forts WHERE external_id='" + str(gym_id) + "';"
-    database.ping(True)
+    database.ping(reconnect=True, attempts=2, delay=0)
     cursor.execute(gym_id_query)
     gym_ids = cursor.fetchall()
     gym_id_count = cursor.rowcount
@@ -98,7 +98,7 @@ def proces_raid(data):
             logging.debug(fort_sightings_query)
                 
         try:
-            database.ping(True)
+            database.ping(reconnect=True, attempts=2, delay=0)
             cursor.execute(existing_raid_check_query)
             raid_data = cursor.fetchall()
             raid_count = cursor.rowcount
@@ -119,7 +119,7 @@ def proces_raid(data):
                 #If exisiting pokemon_id in table is an egg, update with new boss_id
                 if ( raid_data[0][2] == 0 ):
                     try:
-                        database.ping(True)
+                        database.ping(reconnect=True, attempts=2, delay=0)
                         cursor.execute(update_query)
                         database.commit()
                         
@@ -141,7 +141,7 @@ def proces_raid(data):
             else:
                 if raid_count == 0: # This is a new egg that popped so go ahead and insert it
                     try:
-                        database.ping(True)
+                        database.ping(reconnect=True, attempts=2, delay=0)
                         cursor.execute(insert_query)
                         database.commit()
                         
@@ -160,7 +160,7 @@ def proces_raid(data):
                         logging.info("DUPLICATE RAID. IGNORED.\n")
                     pass
                 #Need to check if fort_id is in fort_sightings. If not, insert as new entry, otherwise update.
-                database.ping(True)
+                database.ping(reconnect=True, attempts=2, delay=0)
                 cursor.execute(fort_sightings_query)
                 fs_data = cursor.fetchall()
                 fs_count = cursor.rowcount
@@ -171,7 +171,7 @@ def proces_raid(data):
                     
                     if fs_data[0][2] != gym_team: #Check if gym (team) changed
                         try:
-                            database.ping(True)
+                            database.ping(reconnect=True, attempts=2, delay=0)
                             cursor.execute(fort_sightings_update)
                             database.commit()
                             
@@ -194,7 +194,7 @@ def proces_raid(data):
                     fort_sightings_insert = "INSERT INTO fort_sightings(fort_id, team, last_modified) VALUES (" + str(gym_id) + ", " + str(gym_team) + ", " + str(calendar.timegm(current_time.timetuple())) + ");"
                             
                     try:
-                        database.ping(True)
+                        database.ping(reconnect=True, attempts=2, delay=0)
                         cursor.execute(fort_sightings_insert)
                         database.commit()
                         
@@ -226,7 +226,7 @@ def proces_raid(data):
             logging.debug("RAID DEBUG: add_gym_query = " + str(add_gym_query))
                 
         try:
-            database.ping(True)
+            database.ping(reconnect=True, attempts=2, delay=0)
             cursor.execute(add_gym_query)
             database.commit()
             
@@ -321,7 +321,7 @@ def process_pokemon(data):
 
     #Check to see if encounter_id already exists in sightings
     try:
-        database.ping(True)
+        database.ping(reconnect=True, attempts=2, delay=0)
         cursor.execute(encounter_id_query)
         encounter_id_count = cursor.rowcount
         pokemon_data = cursor.fetchall()
@@ -332,7 +332,7 @@ def process_pokemon(data):
     #New pokemon, go ahead and insert new
     if not ( encounter_id_count ):
         try:
-            database.ping(True)
+            database.ping(reconnect=True, attempts=2, delay=0)
             cursor.execute(iv_pokemon_insert_query)
             database.commit()
             
@@ -351,7 +351,7 @@ def process_pokemon(data):
         #Check to see if stored IV is different from what is being sent this time
         if str(stored_atk_iv) != str(atk_iv):
             try:
-                database.ping(True)
+                database.ping(reconnect=True, attempts=2, delay=0)
                 cursor.execute(update_pokemon_query)
                 database.commit()
                 if ( POKEMON_DEBUG ):
@@ -422,7 +422,7 @@ def process_gym(data):
         logging.debug("GYM DEBUG: insert_gym_query = " + str(insert_gym_query))
 
     try:
-        database.ping(True)
+        database.ping(reconnect=True, attempts=2, delay=0)
         cursor.execute(get_gym_id_query)
         fort_data = cursor.fetchall()
         fort_count = cursor.rowcount
@@ -446,7 +446,7 @@ def process_gym(data):
         print("Fort ID was not found. Attempting to insert new gym.")
 
         try:
-            database.ping(True)
+            database.ping(reconnect=True, attempts=2, delay=0)
             cursor.execute(insert_gym_query)
             database.commit()
         
@@ -457,7 +457,7 @@ def process_gym(data):
             database.rollback()
 
     try:
-        database.ping(True)
+        database.ping(reconnect=True, attempts=2, delay=0)
         cursor.execute(get_gym_id_query)
         fort_data = cursor.fetchall()
         fort_count_2 = cursor.rowcount
@@ -492,7 +492,7 @@ def process_gym(data):
 
     if gym_name_2 is None and gym_name is not None:
         try:
-            database.ping(True)
+            database.ping(reconnect=True, attempts=2, delay=0)
             cursor.execute(update_fort_name_query)
             database.commit()
         
@@ -508,7 +508,7 @@ def process_gym(data):
 
     if gym_url_2 is None and gym_url is not None:
         try:
-            database.ping(True)
+            database.ping(reconnect=True, attempts=2, delay=0)
             cursor.execute(update_fort_url_query)
             database.commit()
             
@@ -523,7 +523,7 @@ def process_gym(data):
                 logging.debug("FAILED TO UPDATE GYM URL.")
 
     try:
-        database.ping(True)
+        database.ping(reconnect=True, attempts=2, delay=0)
         cursor.execute(fort_sightings_query)
         fs_count = cursor.rowcount
         
@@ -538,7 +538,7 @@ def process_gym(data):
 
     if ( fs_count ):
         try:
-            database.ping(True)
+            database.ping(reconnect=True, attempts=2, delay=0)
             cursor.execute(update_fort_sighting_query)
             database.commit()
             
@@ -550,7 +550,7 @@ def process_gym(data):
             database.rollback()
     else:
         try:
-            database.ping(True)
+            database.ping(reconnect=True, attempts=2, delay=0)
             cursor.execute(insert_fort_sighting_query)
             database.commit()
             
@@ -614,7 +614,7 @@ def process_quest(data):
 
     #Check if pokestop exists, if not insert new one
     try:
-        database.ping(True)
+        database.ping(reconnect=True, attempts=2, delay=0)
         cursor.execute(get_pokestop_id_query)
         ps_count = cursor.rowcount
 
@@ -628,7 +628,7 @@ def process_quest(data):
             logging.debug("POKESTOP NOT FOUND. Inserting new pokestop: " + str(name) + " Lat: " + str(latitude) + " Lon: " + str(longitude))
         
         try:
-            database.ping(True)
+            database.ping(reconnect=True, attempts=2, delay=0)
             cursor.execute(insert_pokestop_query)
             database.commit()
         except:
@@ -636,7 +636,7 @@ def process_quest(data):
 
     #Get pokestop_id now
     try:
-        database.ping(True)
+        database.ping(reconnect=True, attempts=2, delay=0)
         cursor.execute(get_pokestop_id_query)
         ps_data = cursor.fetchall()
     
@@ -655,7 +655,7 @@ def process_quest(data):
 
     if pokestop_url is None and url is not None:
         try:
-            database.ping(True)
+            database.ping(reconnect=True, attempts=2, delay=0)
             cursor.execute(update_pokestop_url)
             database.commit()
         
@@ -685,7 +685,7 @@ def process_quest(data):
 
     #Check if quest entry exists
     try:
-        database.ping(True)
+        database.ping(reconnect=True, attempts=2, delay=0)
         cursor.execute(quests_query)
         ps_count = cursor.rowcount
         database.commit()
@@ -695,7 +695,7 @@ def process_quest(data):
     #If quest entry exists, update the entry, otherwise, insert new quest
     if ( ps_count ):
         try:
-            database.ping(True)
+            database.ping(reconnect=True, attempts=2, delay=0)
             cursor.execute(update_quest_query)
             database.commit()
 
@@ -710,7 +710,7 @@ def process_quest(data):
                 logging.info("QUEST UPDATE FAILED. Quest: " + str(quest_type) + " Pokestop ID: " + str(pokestop_id) + "\n")
     else:
         try:
-            database.ping(True)
+            database.ping(reconnect=True, attempts=2, delay=0)
             cursor.execute(insert_quest_query)
             database.commit()
 
@@ -782,7 +782,7 @@ def process_pokestop(data):
 
     #Check if pokestop exists, if not insert new one
     try:
-        database.ping(True)
+        database.ping(reconnect=True, attempts=2, delay=0)
         cursor.execute(get_pokestop_id_query)
         ps_count = cursor.rowcount
 
@@ -800,7 +800,7 @@ def process_pokestop(data):
             logging.debug("POKESTOP NOT FOUND. Inserting new pokestop: " + str(pokestop_name) + " Lat: " + str(latitude) + " Lon: " + str(longitude))
         
         try:
-            database.ping(True)
+            database.ping(reconnect=True, attempts=2, delay=0)
             cursor.execute(insert_pokestop_query)
             database.commit()
         except:
@@ -808,7 +808,7 @@ def process_pokestop(data):
 
     #Get pokestop_id now
     try:
-        database.ping(True)
+        database.ping(reconnect=True, attempts=2, delay=0)
         cursor.execute(get_pokestop_id_query)
         ps_data = cursor.fetchall()
     
@@ -833,7 +833,7 @@ def process_pokestop(data):
     #Check to see if stored Pokestop has URL, if not update the URL
     if stored_pokestop_url is None and url is not None:
         try:
-            database.ping(True)
+            database.ping(reconnect=True, attempts=2, delay=0)
             cursor.execute(update_pokestop_url)
             database.commit()
         
@@ -894,7 +894,7 @@ def process_pokestop(data):
                     logging.debug("POKESTOP DEBUG: DUPLICATE DETECTED: " + str(incident_expiration) + " = " + str(stored_pokestop_incident_expiration))
             else:
                 try:
-                    database.ping(True)
+                    database.ping(reconnect=True, attempts=2, delay=0)
                     cursor.execute(update_dark_stop_query)
                     database.commit()
                     
