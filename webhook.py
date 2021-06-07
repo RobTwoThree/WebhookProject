@@ -5,7 +5,8 @@ import calendar
 import time
 import logging
 import requests
-import MySQLdb
+#import MySQLdb
+import mysql.connector
 from flask import Flask, request, abort
 from config import HOST, PORT, DB_HOST, DB_USER, DB_PASSWORD, DATABASE, MAIN_DEBUG, SHOW_PAYLOAD, RAID_DEBUG, GYM_DEBUG, POKEMON_DEBUG, POKEALARM_DEBUG, QUEST_DEBUG, POKESTOP_DEBUG, WHITELIST, webhook_url, pokealarm_url, pokealarm_port
 from discord_notifications import notify
@@ -14,7 +15,8 @@ logging.basicConfig(filename='debug_webhook.log',level=logging.DEBUG)
 
 app = Flask(__name__)
 
-database = MySQLdb.connect(DB_HOST, DB_USER, DB_PASSWORD, DATABASE)
+#database = MySQLdb.connect(DB_HOST, DB_USER, DB_PASSWORD, DATABASE)
+database = mysql.connector.connect(host=DB_HOST, user=DB_USER, password=DB_PASSWORD, database=DATABASE)
 
 if (database):
     print('Database Connection Successful.')
@@ -346,6 +348,8 @@ def process_pokemon(data):
                 print("POKEMON INSERT FAILED.\n")
                 logging.debug("POKEMON INSERT FAILED.\n")
     else: #Existing pokemon, check to see if its an IV update
+        print("Stored ATK_IV:" + str(pokemon_data[0][1]))
+        print("Current ATK_IV:" + str(atk_iv))
         stored_atk_iv = pokemon_data[0][1]
         
         #Check to see if stored IV is different from what is being sent this time

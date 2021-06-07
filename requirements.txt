@@ -3,3 +3,4 @@ discord_webhook>=0.13.0
 requests>=2.25.1
 Flask>=2.0.1
 mysqlclient>=2.0.3
+mysql-connector-python>=8.0.25
