@@ -77,7 +77,7 @@ def proces_raid(data):
     cursor.execute(gym_id_query)
     gym_ids = cursor.fetchall()
     gym_id_count = cursor.rowcount
-    database.close()
+    database.commit()
 
     if ( gym_id_count ):
         gym_id = gym_ids[0][0]
@@ -104,7 +104,7 @@ def proces_raid(data):
             cursor.execute(existing_raid_check_query)
             raid_data = cursor.fetchall()
             raid_count = cursor.rowcount
-            database.close()
+            database.commit()
 
             if ( RAID_DEBUG ):
                 print("RAID DEBUG: raid_count = " + str(raid_count))
@@ -166,7 +166,7 @@ def proces_raid(data):
                 cursor.execute(fort_sightings_query)
                 fs_data = cursor.fetchall()
                 fs_count = cursor.rowcount
-                database.close()
+                database.commit()
 
                 if ( fs_count ):
                     fort_sightings_update = "UPDATE fort_sightings SET team='" + str(gym_team) + "' WHERE fort_id='" + str(gym_id) + "';"
@@ -327,8 +327,7 @@ def process_pokemon(data):
         cursor.execute(encounter_id_query)
         pokemon_data = cursor.fetchall()
         encounter_id_count = cursor.rowcount
-        database.close()
-
+        database.commit()
     except:
         database.rollback()
 
@@ -338,7 +337,6 @@ def process_pokemon(data):
             database.ping(reconnect=True, attempts=2, delay=0)
             cursor.execute(iv_pokemon_insert_query)
             database.commit()
-            database.close()
             
             if ( POKEMON_DEBUG ):
                 print("POKEMON ADDED. Pokemon ID:" + str(pokemon_id) + " Lat:" + str(latitude) + " Lon:" + str(longitude) + "\n")
@@ -431,7 +429,7 @@ def process_gym(data):
         fort_data = cursor.fetchall()
         fort_count = cursor.rowcount
 
-        database.close()
+        database.commit()
     except:
         database.rollback()
 
@@ -466,7 +464,7 @@ def process_gym(data):
         fort_data = cursor.fetchall()
         fort_count_2 = cursor.rowcount
 
-        database.close()
+        database.commit()
     except:
         database.rollback()
 
@@ -531,7 +529,7 @@ def process_gym(data):
         cursor.execute(fort_sightings_query)
         fs_count = cursor.rowcount
         
-        database.close()
+        database.commit()
     except:
         database.rollback()
 
@@ -622,7 +620,7 @@ def process_quest(data):
         cursor.execute(get_pokestop_id_query)
         ps_count = cursor.rowcount
 
-        database.close()
+        database.commit()
     except:
         database.rollback()
 
@@ -644,7 +642,7 @@ def process_quest(data):
         cursor.execute(get_pokestop_id_query)
         ps_data = cursor.fetchall()
     
-        database.close()
+        database.commit()
     except:
         database.rollback()
 
@@ -692,7 +690,7 @@ def process_quest(data):
         database.ping(reconnect=True, attempts=2, delay=0)
         cursor.execute(quests_query)
         ps_count = cursor.rowcount
-        database.close()
+        database.commit()
     except:
         database.rollback()
 
@@ -790,7 +788,7 @@ def process_pokestop(data):
         cursor.execute(get_pokestop_id_query)
         ps_count = cursor.rowcount
 
-        database.close()
+        database.commit()
     except:
         database.rollback()
 
@@ -816,7 +814,7 @@ def process_pokestop(data):
         cursor.execute(get_pokestop_id_query)
         ps_data = cursor.fetchall()
     
-        database.close()
+        database.commit()
     except:
         database.rollback()
 
