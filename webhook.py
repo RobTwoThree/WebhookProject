@@ -325,8 +325,8 @@ def process_pokemon(data):
     try:
         database.ping(reconnect=True, attempts=2, delay=0)
         cursor.execute(encounter_id_query)
-        encounter_id_count = cursor.rowcount
         pokemon_data = cursor.fetchall()
+        encounter_id_count = cursor.rowcount
         database.commit()
     except:
         database.rollback()
@@ -348,8 +348,6 @@ def process_pokemon(data):
                 print("POKEMON INSERT FAILED.\n")
                 logging.debug("POKEMON INSERT FAILED.\n")
     else: #Existing pokemon, check to see if its an IV update
-        print("Stored ATK_IV:" + str(pokemon_data[0][1]))
-        print("Current ATK_IV:" + str(atk_iv))
         stored_atk_iv = pokemon_data[0][1]
         
         #Check to see if stored IV is different from what is being sent this time
