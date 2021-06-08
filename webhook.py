@@ -5,7 +5,6 @@ import calendar
 import time
 import logging
 import requests
-#import MySQLdb
 import mysql.connector
 from flask import Flask, request, abort
 from config import HOST, PORT, DB_HOST, DB_USER, DB_PASSWORD, DATABASE, MAIN_DEBUG, SHOW_PAYLOAD, RAID_DEBUG, GYM_DEBUG, POKEMON_DEBUG, POKEALARM_DEBUG, QUEST_DEBUG, POKESTOP_DEBUG, WHITELIST, webhook_url, pokealarm_url, pokealarm_port
@@ -15,7 +14,6 @@ logging.basicConfig(filename='debug_webhook.log',level=logging.DEBUG)
 
 app = Flask(__name__)
 
-#database = MySQLdb.connect(DB_HOST, DB_USER, DB_PASSWORD, DATABASE)
 database = mysql.connector.connect(host=DB_HOST, user=DB_USER, password=DB_PASSWORD, database=DATABASE)
 
 if (database):
@@ -294,12 +292,10 @@ def process_pokemon(data):
         move_2 = "null"
     disappear_time = data['disappear_time']
     encounter_id = data['encounter_id']
-    #last_modified_time = data['last_modified_time']
     latitude = data['latitude']
     longitude = data['longitude']
     pokemon_id = data['pokemon_id']
     spawnpoint_id = data['spawnpoint_id']
-    #time_until_hidden_ms = data['time_until_hidden_ms']
 
     iv_pokemon_insert_query = "INSERT INTO sightings(pokemon_id, gender, form, weather_boosted_condition, spawn_id, expire_timestamp, encounter_id, lat, lon, atk_iv, def_iv, sta_iv, cp, level, weight, move_1, move_2, updated) VALUES(" + str(pokemon_id) + ", " + str(gender) + ", " + str(form) + ", " + str(boosted_weather) + ", " + str(spawnpoint_id) + ", " + str(disappear_time) + ", " + str(encounter_id) + ", " + str(latitude) + ", " + str(longitude) + ", " + str(atk_iv) + ", " + str(def_iv) + ", " + str(sta_iv) + ", " + str(cp) + ", " + str(level) + ", " + str(weight) + ", " + str(move_1) + ", " + str(move_2) + ", " + str(calendar.timegm(current_time.timetuple())) + ");"
 
@@ -308,12 +304,6 @@ def process_pokemon(data):
     encounter_id_query = "SELECT encounter_id, atk_iv, def_iv, sta_iv FROM sightings WHERE encounter_id='" + str(encounter_id) + "';"
 
     if ( POKEMON_DEBUG ):
-        #print("POKEMON DEBUG: " + str(iv_pokemon_insert_query))
-        #logging.debug("POKEMON DEBUG: " + str(iv_pokemon_insert_query))
-        #print("POKEMON DEBUG: " + str(encounter_id_query))
-        #logging.debug("POKEMON DEBUG: " + str(encounter_id_query))
-        #print("POKEMON DEBUG: " + str(update_pokemon_query))
-        #logging.debug("POKEMON DEBUG: " + str(update_pokemon_query))
         msg = "POKEMON DEBUG: " + str(iv_pokemon_insert_query) + "\n"
         msg += "POKEMON DEBUG: " + str(encounter_id_query) + "\n"
         msg += "POKEMON DEBUG: " + str(update_pokemon_query) + "\n"
@@ -407,11 +397,6 @@ def process_gym(data):
         last_modified = data['last_modified']
     else:
         last_modified = current_epoch_time;
-    #lowest_pokemon_motivation = data['lowest_pokemon_motivation']
-    #total_cp = data['total_cp']
-    #enabled = data['enabled']
-    #gym_description = data['description']
-    #raid_active_until = data['raid_active_until']
 
     get_gym_id_query = "SELECT id, name, url FROM forts WHERE external_id='" + str(external_id) + "';"
 
@@ -428,7 +413,6 @@ def process_gym(data):
         cursor.execute(get_gym_id_query)
         fort_data = cursor.fetchall()
         fort_count = cursor.rowcount
-
         database.commit()
     except:
         database.rollback()
@@ -463,7 +447,6 @@ def process_gym(data):
         cursor.execute(get_gym_id_query)
         fort_data = cursor.fetchall()
         fort_count_2 = cursor.rowcount
-
         database.commit()
     except:
         database.rollback()
@@ -528,7 +511,6 @@ def process_gym(data):
         database.ping(reconnect=True, attempts=2, delay=0)
         cursor.execute(fort_sightings_query)
         fs_count = cursor.rowcount
-        
         database.commit()
     except:
         database.rollback()
@@ -619,7 +601,6 @@ def process_quest(data):
         database.ping(reconnect=True, attempts=2, delay=0)
         cursor.execute(get_pokestop_id_query)
         ps_count = cursor.rowcount
-
         database.commit()
     except:
         database.rollback()
@@ -641,7 +622,6 @@ def process_quest(data):
         database.ping(reconnect=True, attempts=2, delay=0)
         cursor.execute(get_pokestop_id_query)
         ps_data = cursor.fetchall()
-    
         database.commit()
     except:
         database.rollback()
@@ -787,7 +767,6 @@ def process_pokestop(data):
         database.ping(reconnect=True, attempts=2, delay=0)
         cursor.execute(get_pokestop_id_query)
         ps_count = cursor.rowcount
-
         database.commit()
     except:
         database.rollback()
@@ -813,7 +792,6 @@ def process_pokestop(data):
         database.ping(reconnect=True, attempts=2, delay=0)
         cursor.execute(get_pokestop_id_query)
         ps_data = cursor.fetchall()
-    
         database.commit()
     except:
         database.rollback()
@@ -1034,8 +1012,6 @@ def webhook():
                 result = process_pokestop(pokestop)
 
         return 'DONE PROCESSING ' + str(len(data)) + ' MESSAGE(S).\n', 200
-        #else:
-        #    return 'THANK YOU. DONE PROCESSING ' + str(len(data)) + ' MESSAGE(S).\n', 200
         
     else:
         abort(400)
