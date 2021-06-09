@@ -5,8 +5,8 @@ import calendar
 import time
 import logging
 import requests
-import mysql.connector
 from flask import Flask, request, abort
+from flask_mysqldb import MySQL
 from config import HOST, PORT, DB_HOST, DB_USER, DB_PASSWORD, DATABASE, MAIN_DEBUG, SHOW_PAYLOAD, RAID_DEBUG, GYM_DEBUG, POKEMON_DEBUG, POKEALARM_DEBUG, QUEST_DEBUG, POKESTOP_DEBUG, WHITELIST, webhook_url, pokealarm_url, pokealarm_port
 from discord_notifications import notify
 
@@ -14,8 +14,13 @@ logging.basicConfig(filename='debug_webhook.log',level=logging.DEBUG)
 
 app = Flask(__name__)
 
-database = mysql.connector.connect(host=DB_HOST, user=DB_USER, password=DB_PASSWORD, database=DATABASE)
+app.config['MYSQL_HOST'] = DB_HOST
+app.config['MYSQL_USER'] = DB_USER
+app.config['MYSQL_PASSWORD'] = DB_PASSWORD
+app.config['MYSQL_DB'] = DATABASE
+app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
+database = MySQL(app)
 if (database):
     print('Database Connection Successful.')
     logging.info('Database Connection Successful.')
@@ -23,7 +28,8 @@ else:
     print('Database Connection Unsuccessful.')
     logging.info('Database Connection Unsuccessful.')
 
-cursor = database.cursor()
+
+#cursor = database.cursor()
 
 print('Webhook Started at ' + str(time.strftime('%I:%M %p on %m.%d.%y',  time.localtime(calendar.timegm(datetime.datetime.utcnow().timetuple())))))
 logging.info('Webhook Started at ' + str(time.strftime('%I:%M %p on %m.%d.%y',  time.localtime(calendar.timegm(datetime.datetime.utcnow().timetuple())))))
@@ -47,7 +53,10 @@ def proces_raid(data):
     raid_level = data['level']
     raid_begin = data['start']
     raid_end = data['end']
-    raid_evolution = data['evolution']
+    if 'evolution' not in data:
+        raid_evolution = ''
+    else:
+        raid_evolution = data['evolution']
 
 
     #Check if message has pokemon_id sent. If not, its an egg
@@ -71,14 +80,14 @@ def proces_raid(data):
         form = 0
 
     gym_id_query = "SELECT id FROM forts WHERE external_id='" + str(gym_id) + "';"
-    database.ping(reconnect=True, attempts=2, delay=0)
+    cursor = database.connection.cursor()
     cursor.execute(gym_id_query)
     gym_ids = cursor.fetchall()
     gym_id_count = cursor.rowcount
-    database.commit()
+    database.connection.commit()
 
     if ( gym_id_count ):
-        gym_id = gym_ids[0][0]
+        gym_id = gym_ids[0]['id']
         insert_query = "INSERT INTO raids(id, external_id, fort_id, level, pokemon_id, move_1, move_2, time_spawn, time_battle, time_end, cp, form, evolution) VALUES (null, null, " + str(gym_id) + ", " + str(raid_level) + ", " + str(boss_id) + ", " + str(boss_move_1) + ", " + str(boss_move_2) + ", null, " + str(raid_begin) + ", " + str(raid_end) + ", " + str(boss_cp) + ", " + str(form) + ", " + str(raid_evolution) + ");"
                 
         update_query = "UPDATE raids SET pokemon_id='" + str(boss_id) + "', move_1='" + str(boss_move_1) + "', move_2='" + str(boss_move_2) + "', cp='" + str(boss_cp) + "', form='" + str(form) + "', evolution='" + str(raid_evolution) + "' WHERE fort_id='" + str(gym_id)+ "' AND time_end>'" + str(calendar.timegm(current_time.timetuple())) + "';"
@@ -98,11 +107,11 @@ def proces_raid(data):
             logging.debug(fort_sightings_query)
                 
         try:
-            database.ping(reconnect=True, attempts=2, delay=0)
+            cursor = database.connection.cursor()
             cursor.execute(existing_raid_check_query)
             raid_data = cursor.fetchall()
             raid_count = cursor.rowcount
-            database.commit()
+            database.connection.commit()
 
             if ( RAID_DEBUG ):
                 print("RAID DEBUG: raid_count = " + str(raid_count))
@@ -113,21 +122,21 @@ def proces_raid(data):
             #If raid entry already exists and current boss_id is provided in message, update entry
             if raid_count > 0 and boss_id != "0":
                 if ( RAID_DEBUG ):
-                    print("RAID DEBUG: raid_data[0][2] = " + str(raid_data[0][2]))
-                    logging.debug("RAID DEBUG: raid_data[0][2] = " + str(raid_data[0][2]))
+                    print("RAID DEBUG: raid_data[0]['pokemon_id'] = " + str(raid_data[0]['pokemon_id']))
+                    logging.debug("RAID DEBUG: raid_data[0]['pokemon_id'] = " + str(raid_data[0]['pokemon_id']))
               
                 #If exisiting pokemon_id in table is an egg, update with new boss_id
-                if ( raid_data[0][2] == 0 ):
+                if ( raid_data[0]['pokemon_id'] == 0 ):
                     try:
-                        database.ping(reconnect=True, attempts=2, delay=0)
+                        cursor = database.connection.cursor()
                         cursor.execute(update_query)
-                        database.commit()
+                        database.connection.commit()
                         
                         if ( RAID_DEBUG ):
-                            print("RAID UPDATED. Old Boss:" + str(raid_data[0][2]) + " New Boss:" + str(boss_id) + " Move 1: " + str(boss_move_1) + " Move 2: " + str(boss_move_2) + " CP: " + str(boss_cp) + " FORM: " + str(form) + "\n")
-                            logging.info("RAID UPDATED. Old Boss:" + str(raid_data[0][2]) + " New Boss:" + str(boss_id) + " Move 1: " + str(boss_move_1) + " Move 2: " + str(boss_move_2) + " CP: " + str(boss_cp) + " FORM: " + str(form) + "\n")
+                            print("RAID UPDATED. Old Boss:" + str(raid_data[0]['pokemon_id']) + " New Boss:" + str(boss_id) + " Move 1: " + str(boss_move_1) + " Move 2: " + str(boss_move_2) + " CP: " + str(boss_cp) + " FORM: " + str(form) + "\n")
+                            logging.info("RAID UPDATED. Old Boss:" + str(raid_data[0]['pokemon_id']) + " New Boss:" + str(boss_id) + " Move 1: " + str(boss_move_1) + " Move 2: " + str(boss_move_2) + " CP: " + str(boss_cp) + " FORM: " + str(form) + "\n")
                     except:
-                        database.rollback()
+                        database.connection.rollback()
                         
                         if ( RAID_DEBUG ):
                             print("RAID UPDATE FAILED.\n")
@@ -141,15 +150,15 @@ def proces_raid(data):
             else:
                 if raid_count == 0: # This is a new egg that popped so go ahead and insert it
                     try:
-                        database.ping(reconnect=True, attempts=2, delay=0)
+                        cursor = database.connection.cursor()
                         cursor.execute(insert_query)
-                        database.commit()
+                        database.connection.commit()
                         
                         if ( RAID_DEBUG ):
                             print("RAID INSERT EXECUTED. Gym:" + str(gym_id) + " Raid:" + str(raid_level) + " Boss:" + str(boss_id))
                             logging.info("RAID INSERT EXECUTED. Gym:" + str(gym_id) + " Raid:" + str(raid_level) + " Boss:" + str(boss_id))
                     except:
-                        database.rollback()
+                        database.connection.rollback()
                         
                         if ( RAID_DEBUG ):
                             print("RAID INSERT FAILED.\n")
@@ -160,26 +169,26 @@ def proces_raid(data):
                         logging.info("DUPLICATE RAID. IGNORED.\n")
                     pass
                 #Need to check if fort_id is in fort_sightings. If not, insert as new entry, otherwise update.
-                database.ping(reconnect=True, attempts=2, delay=0)
+                cursor = database.connection.cursor()
                 cursor.execute(fort_sightings_query)
                 fs_data = cursor.fetchall()
                 fs_count = cursor.rowcount
-                database.commit()
+                database.connection.commit()
 
                 if ( fs_count ):
                     fort_sightings_update = "UPDATE fort_sightings SET team='" + str(gym_team) + "' WHERE fort_id='" + str(gym_id) + "';"
                     
-                    if fs_data[0][2] != gym_team: #Check if gym (team) changed
+                    if fs_data[0]['team'] != gym_team: #Check if gym (team) changed
                         try:
-                            database.ping(reconnect=True, attempts=2, delay=0)
+                            cursor = database.connection.cursor()
                             cursor.execute(fort_sightings_update)
-                            database.commit()
+                            database.connection.commit()
                             
                             if ( RAID_DEBUG ):
                                 print("RAID UPDATED FORT_SIGHTINGS. Gym:" + str(gym_id) + " Team:" + str(gym_team) + "\n")
                                 logging.info("RAID UPDATED FORT_SIGHTINGS. Gym:" + str(gym_id) + " Team:" + str(gym_team) + "\n")
                         except:
-                            database.rollback()
+                            database.connection.rollback()
                             
                             if ( RAID_DEBUG ):
                                 print("RAID UPDATE TO FORT_SIGHTINGS FAILED.\n")
@@ -194,15 +203,15 @@ def proces_raid(data):
                     fort_sightings_insert = "INSERT INTO fort_sightings(fort_id, team, last_modified) VALUES (" + str(gym_id) + ", " + str(gym_team) + ", " + str(calendar.timegm(current_time.timetuple())) + ");"
                             
                     try:
-                        database.ping(reconnect=True, attempts=2, delay=0)
+                        cursor = database.connection.cursor()
                         cursor.execute(fort_sightings_insert)
-                        database.commit()
+                        database.connection.commit()
                         
                         if ( RAID_DEBUG ):
                             print("RAID INSERTED INTO FORT_SIGHTINGS. Gym:" + str(gym_id) + " Team:" + str(gym_team) + "\n")
                             logging.info("RAID INSERTED INTO FORT_SIGHTINGS. Gym:" + str(gym_id) + " Team:" + str(gym_team) + "\n")
                     except:
-                        database.rollback()
+                        database.connection.rollback()
                         
                         if ( RAID_DEBUG ):
                             print("RAID INSERT INTO FORT_SIGHTINGS FAILED.\n")
@@ -210,7 +219,7 @@ def proces_raid(data):
 
                 return 'Raid type was sent and processed.\n', 200
         except:
-            database.rollback()
+            database.connection.rollback()
             
             if ( RAID_DEBUG ):
                 print("EXISTING RAID QUERY FAILED.\n")
@@ -226,16 +235,16 @@ def proces_raid(data):
             logging.debug("RAID DEBUG: add_gym_query = " + str(add_gym_query))
                 
         try:
-            database.ping(reconnect=True, attempts=2, delay=0)
+            cursor = database.connection.cursor()
             cursor.execute(add_gym_query)
-            database.commit()
+            database.connection.commit()
             
             if ( RAID_DEBUG ):
                 print("RAID GYM ADDED. Gym:" + str(gym_id) + " Lat:" + str(gym_lat) + " Lon:" + str(gym_lon) + " Name:" + str(gym_name) + " URL:" + str(gym_url) + "\n")
                 logging.info("RAID GYM ADDED. Gym:" + str(gym_id) + " Lat:" + str(gym_lat) + " Lon:" + str(gym_lon) + " Name:" + str(gym_name) + " URL:" + str(gym_url) + "\n")
             return 'Unknown gym. Insert successful.\n', 200
         except:
-            database.rollback()
+            database.connection.rollback()
             
             if ( RAID_DEBUG ):
                 print("RAID GYM INSERT FAILED.\n")
@@ -313,44 +322,46 @@ def process_pokemon(data):
 
     #Check to see if encounter_id already exists in sightings
     try:
-        database.ping(reconnect=True, attempts=2, delay=0)
+        cursor = database.connection.cursor()
         cursor.execute(encounter_id_query)
         pokemon_data = cursor.fetchall()
         encounter_id_count = cursor.rowcount
-        database.commit()
+        database.connection.commit()
     except:
-        database.rollback()
+        database.connection.rollback()
 
+    print(encounter_id_count)
     #New pokemon, go ahead and insert new
     if not ( encounter_id_count ):
         try:
-            database.ping(reconnect=True, attempts=2, delay=0)
+            cursor = database.connection.cursor()
             cursor.execute(iv_pokemon_insert_query)
-            database.commit()
+            database.connection.commit()
             
             if ( POKEMON_DEBUG ):
                 print("POKEMON ADDED. Pokemon ID:" + str(pokemon_id) + " Lat:" + str(latitude) + " Lon:" + str(longitude) + "\n")
                 logging.info("POKEMON ADDED. Pokemon ID:" + str(pokemon_id) + " Lat:" + str(latitude) + " Lon:" + str(longitude) + "\n")
         except:
-            database.rollback()
+            database.connection.rollback()
             
             if ( POKEMON_DEBUG ):
                 print("POKEMON INSERT FAILED.\n")
                 logging.debug("POKEMON INSERT FAILED.\n")
     else: #Existing pokemon, check to see if its an IV update
-        stored_atk_iv = pokemon_data[0][1]
+        stored_atk_iv = pokemon_data[0]['atk_iv']
         
         #Check to see if stored IV is different from what is being sent this time
         if str(stored_atk_iv) != str(atk_iv):
             try:
-                database.ping(reconnect=True, attempts=2, delay=0)
+                #database.ping(reconnect=True, attempts=2, delay=0)
+                cursor = database.connection.cursor()
                 cursor.execute(update_pokemon_query)
-                database.commit()
+                database.connection.commit()
                 if ( POKEMON_DEBUG ):
                     print("POKEMON UPDATED: encounter_id: " + str(encounter_id) + " atk_iv: " + str(atk_iv) + " def_iv: " + str(def_iv) + " sta_iv: " + str(sta_iv) + " cp: " + str(cp) + "\n")
                     logging.info("POKEMON UPDATED: encounter_id: " + str(encounter_id) + " atk_iv: " + str(atk_iv) + " def_iv: " + str(def_iv) + " sta_iv: " + str(sta_iv) + " cp: " + str(cp) + "\n")
             except:
-                database.rollback()
+                database.connection.rollback()
                 if ( POKEMON_DEBUG ):
                     print("POKEMON UPDATE FAILED.\n")
                     logging.info("POKEMON UPDATE FAILED.\n")
@@ -409,13 +420,13 @@ def process_gym(data):
         logging.debug("GYM DEBUG: insert_gym_query = " + str(insert_gym_query))
 
     try:
-        database.ping(reconnect=True, attempts=2, delay=0)
+        cursor = database.connection.cursor()
         cursor.execute(get_gym_id_query)
         fort_data = cursor.fetchall()
         fort_count = cursor.rowcount
-        database.commit()
+        database.connection.commit()
     except:
-        database.rollback()
+        database.connection.rollback()
 
 
 
@@ -424,7 +435,7 @@ def process_gym(data):
         logging.debug("GYM DEBUG: fort_count = " + str(fort_count))
         
         if ( fort_count ):
-            gym_id_1 = fort_data[0][0]
+            gym_id_1 = fort_data[0]['id']
             print("GYM DEBUG: gym_id_1 = " + str(gym_id_1))
             logging.debug("GYM DEBUG: gym_id_1 = " + str(gym_id_1))
 
@@ -432,33 +443,33 @@ def process_gym(data):
         print("Fort ID was not found. Attempting to insert new gym.")
 
         try:
-            database.ping(reconnect=True, attempts=2, delay=0)
+            cursor = database.connection.cursor()
             cursor.execute(insert_gym_query)
-            database.commit()
+            database.connection.commit()
         
             if ( GYM_DEBUG ):
                 print("New gym added. External ID: " + str(external_id) + " Lat: " + str(gym_lat) + " Lon: " + str(gym_lon) + " Name: " + str(gym_name) + " URL: " + str(gym_url) + "\n")
                 logging.info("GYM ADDED. External ID: " + str(external_id) + " Lat: " + str(gym_lat) + " Lon: " + str(gym_lon) + " Name: " + str(gym_name) + " URL: " + str(gym_url) + "\n")
         except:
-            database.rollback()
+            database.connection.rollback()
 
     try:
-        database.ping(reconnect=True, attempts=2, delay=0)
+        cursor = database.connection.cursor()
         cursor.execute(get_gym_id_query)
         fort_data = cursor.fetchall()
         fort_count_2 = cursor.rowcount
-        database.commit()
+        database.connection.commit()
     except:
-        database.rollback()
+        database.connection.rollback()
 
     if ( GYM_DEBUG ):
         print("fort_count_2 = " + str(fort_count_2))
         logging.debug("fort_count_2 = " + str(fort_count_2))
 
     # May need to check fort_data count to see if this empty and handle it
-    gym_id_2 = fort_data[0][0]
-    gym_name_2 = fort_data[0][1]
-    gym_url_2 = fort_data[0][2]
+    gym_id_2 = fort_data[0]['id']
+    gym_name_2 = fort_data[0]['name']
+    gym_url_2 = fort_data[0]['url']
 
     if ( GYM_DEBUG ):
         print("GYM DEBUG: gym_id_2 = " + str(gym_id_2) + " gym_name_2 = " + str(gym_name_2) + " gym_url_2 = " + str(gym_url_2))
@@ -477,15 +488,15 @@ def process_gym(data):
 
     if gym_name_2 is None and gym_name is not None:
         try:
-            database.ping(reconnect=True, attempts=2, delay=0)
+            cursor = database.connection.cursor()
             cursor.execute(update_fort_name_query)
-            database.commit()
+            database.connection.commit()
         
             if ( GYM_DEBUG ):
                 print("GYM NAME UPDATED. NAME: " + str(gym_name))
                 logging.debug("GYM NAME UPDATED. NAME: " + str(gym_name))
         except:
-            database.rollback()
+            database.connection.rollback()
             
             if ( GYM_DEBUG ):
                 print("FAILED TO UPDATE GYM NAME.")
@@ -493,27 +504,27 @@ def process_gym(data):
 
     if gym_url_2 is None and gym_url is not None:
         try:
-            database.ping(reconnect=True, attempts=2, delay=0)
+            cursor = database.connection.cursor()
             cursor.execute(update_fort_url_query)
-            database.commit()
+            database.connection.commit()
             
             if ( GYM_DEBUG ):
                 print("GYM URL UPDATED. URL: " + str(gym_url))
                 logging.debug("GYM URL UPDATED. URL: " + str(gym_url))
         except:
-            database.rollback()
+            database.connection.rollback()
 
             if ( GYM_DEBUG ):
                 print("FAILED TO UPDATE GYM URL.")
                 logging.debug("FAILED TO UPDATE GYM URL.")
 
     try:
-        database.ping(reconnect=True, attempts=2, delay=0)
+        cursor = database.connection.cursor()
         cursor.execute(fort_sightings_query)
         fs_count = cursor.rowcount
-        database.commit()
+        database.connection.commit()
     except:
-        database.rollback()
+        database.connection.rollback()
 
     if ( GYM_DEBUG ):
         print("GYM DEBUG: fs_count = " + str(fs_count))
@@ -522,28 +533,28 @@ def process_gym(data):
 
     if ( fs_count ):
         try:
-            database.ping(reconnect=True, attempts=2, delay=0)
+            cursor = database.connection.cursor()
             cursor.execute(update_fort_sighting_query)
-            database.commit()
+            database.connection.commit()
             
             if ( GYM_DEBUG ):
                 print("GYM SIGHTING UPDATED. Gym: " + str(gym_id_2) + " Last Modified: " + str(last_modified) + " Gym Team: " + str(gym_team) + " Guarding Pokemon: " + str(guard_pokemon_id) + " Slots Available: " + str(slots_available) + "\n")
                 logging.info("GYM SIGHTING UPDATED. Gym: " + str(gym_id_2) + " Last Modified: " + str(last_modified) + " Gym Team: " + str(gym_team) + " Guarding Pokemon: " + str(guard_pokemon_id) + " Slots Available: " + str(slots_available) + "\n")
         
         except:
-            database.rollback()
+            database.connection.rollback()
     else:
         try:
-            database.ping(reconnect=True, attempts=2, delay=0)
+            cursor = database.connection.cursor()
             cursor.execute(insert_fort_sighting_query)
-            database.commit()
+            database.connection.commit()
             
             if ( GYM_DEBUG ):
                 print("GYM SIGHTING INSERTED. Gym: " + str(gym_id_2) + " Last Modified: " + str(last_modified) + " Gym Team: " + str(gym_team) + " Guarding Pokemon: " + str(guard_pokemon_id) + " Slots Available: " + str(slots_available) + "\n")
                 logging.info("GYM SIGHTING INSERTED. Gym: " + str(gym_id_2) + " Last Modified: " + str(last_modified) + " Gym Team: " + str(gym_team) + " Guarding Pokemon: " + str(guard_pokemon_id) + " Slots Available: " + str(slots_available) + "\n")
 
         except:
-            database.rollback()
+            database.connection.rollback()
             
             if ( GYM_DEBUG ):
                 print("GYM INSERT FAILED. Gym:" + str(gym_id_2) + "\n")
@@ -598,12 +609,12 @@ def process_quest(data):
 
     #Check if pokestop exists, if not insert new one
     try:
-        database.ping(reconnect=True, attempts=2, delay=0)
+        cursor = database.connection.cursor()
         cursor.execute(get_pokestop_id_query)
         ps_count = cursor.rowcount
-        database.commit()
+        database.connection.commit()
     except:
-        database.rollback()
+        database.connection.rollback()
 
     if not ( ps_count ): #If 0 records are returned, must be a new pokestop
         if ( QUEST_DEBUG ):
@@ -611,23 +622,23 @@ def process_quest(data):
             logging.debug("POKESTOP NOT FOUND. Inserting new pokestop: " + str(name) + " Lat: " + str(latitude) + " Lon: " + str(longitude))
         
         try:
-            database.ping(reconnect=True, attempts=2, delay=0)
+            cursor = database.connection.cursor()
             cursor.execute(insert_pokestop_query)
-            database.commit()
+            database.connection.commit()
         except:
-            database.rollback()
+            database.connection.rollback()
 
     #Get pokestop_id now
     try:
-        database.ping(reconnect=True, attempts=2, delay=0)
+        cursor = database.connection.cursor()
         cursor.execute(get_pokestop_id_query)
         ps_data = cursor.fetchall()
-        database.commit()
+        database.connection.commit()
     except:
-        database.rollback()
+        database.connection.rollback()
 
-    pokestop_id = ps_data[0][0]
-    pokestop_url = ps_data[0][2]
+    pokestop_id = ps_data[0]['id']
+    pokestop_url = ps_data[0]['url']
 
     update_pokestop_url = "UPDATE pokestops SET url='" + str(url) + "' WHERE id='" + str(pokestop_id) + "';"
 
@@ -637,15 +648,15 @@ def process_quest(data):
 
     if pokestop_url is None and url is not None:
         try:
-            database.ping(reconnect=True, attempts=2, delay=0)
+            cursor = database.connection.cursor()
             cursor.execute(update_pokestop_url)
-            database.commit()
+            database.connection.commit()
         
             if ( QUEST_DEBUG ):
                 print("POKESTOP URL UPDATED. URL: " + str(url))
                 logging.debug("POKESTOP URL UPDATED. URL: " + str(url))
         except:
-            database.rollback()
+            database.connection.rollback()
             if ( QUEST_DEBUG ):
                 print("FAILED TO UPDATE POKESTOP URL. URL: " + str(url))
                 logging.debug("FAILED TO UPDATE POKESTOP URL. URL: " + str(url))
@@ -667,40 +678,40 @@ def process_quest(data):
 
     #Check if quest entry exists
     try:
-        database.ping(reconnect=True, attempts=2, delay=0)
+        cursor = database.connection.cursor()
         cursor.execute(quests_query)
         ps_count = cursor.rowcount
-        database.commit()
+        database.connection.commit()
     except:
-        database.rollback()
+        database.connection.rollback()
 
     #If quest entry exists, update the entry, otherwise, insert new quest
     if ( ps_count ):
         try:
-            database.ping(reconnect=True, attempts=2, delay=0)
+            cursor = database.connection.cursor()
             cursor.execute(update_quest_query)
-            database.commit()
+            database.connection.commit()
 
             if ( QUEST_DEBUG ):
                 print("QUEST UPDATED. Quest: " + str(quest_type) + ". Pokestop ID: " + str(pokestop_id) + "\n")
                 logging.info("QUEST UPDATED. Quest: " + str(quest_type) + ". Pokestop ID: " + str(pokestop_id) + "\n")
         except:
-            database.rollback()
+            database.connection.rollback()
             
             if ( QUEST_DEBUG ):
                 print("QUEST UPDATE FAILED. Quest: " + str(quest_type) + " Pokestop ID: " + str(pokestop_id) + "\n")
                 logging.info("QUEST UPDATE FAILED. Quest: " + str(quest_type) + " Pokestop ID: " + str(pokestop_id) + "\n")
     else:
         try:
-            database.ping(reconnect=True, attempts=2, delay=0)
+            cursor = database.connection.cursor()
             cursor.execute(insert_quest_query)
-            database.commit()
+            database.connection.commit()
 
             if ( QUEST_DEBUG ):
                 print("QUEST INSERTED. Quest: " + str(quest_type) + ". Pokestop ID: " + str(pokestop_id) + "\n")
                 logging.info("QUEST INSERTED. Quest: " + str(quest_type) + ". Pokestop ID: " + str(pokestop_id) + "\n")
         except:
-            database.rollback()
+            database.connection.rollback()
             
             if ( QUEST_DEBUG ):
                 print("QUEST INSERT FAILED. Quest: " + str(quest_type) + " Pokestop ID: " + str(pokestop_id) + "\n")
@@ -764,12 +775,12 @@ def process_pokestop(data):
 
     #Check if pokestop exists, if not insert new one
     try:
-        database.ping(reconnect=True, attempts=2, delay=0)
+        cursor = database.connection.cursor()
         cursor.execute(get_pokestop_id_query)
         ps_count = cursor.rowcount
-        database.commit()
+        database.connection.commit()
     except:
-        database.rollback()
+        database.connection.rollback()
 
     if ( POKESTOP_DEBUG ):
         print("POKESTOP DEBUG: ps_count = " + str(ps_count))
@@ -781,29 +792,29 @@ def process_pokestop(data):
             logging.debug("POKESTOP NOT FOUND. Inserting new pokestop: " + str(pokestop_name) + " Lat: " + str(latitude) + " Lon: " + str(longitude))
         
         try:
-            database.ping(reconnect=True, attempts=2, delay=0)
+            cursor = database.connection.cursor()
             cursor.execute(insert_pokestop_query)
-            database.commit()
+            database.connection.commit()
         except:
-            database.rollback()
+            database.connection.rollback()
 
     #Get pokestop_id now
     try:
-        database.ping(reconnect=True, attempts=2, delay=0)
+        cursor = database.connection.cursor()
         cursor.execute(get_pokestop_id_query)
         ps_data = cursor.fetchall()
-        database.commit()
+        database.connection.commit()
     except:
-        database.rollback()
+        database.connection.rollback()
 
-    stored_pokestop_id = ps_data[0][0]
-    stored_pokestop_name = ps_data[0][1]
-    stored_pokestop_url = ps_data[0][2]
-    stored_pokestop_lat = ps_data[0][3]
-    stored_pokestop_lon = ps_data[0][4]
-    stored_pokestop_incident_start = ps_data[0][5]
-    stored_pokestop_incident_expiration = ps_data[0][6]
-    stored_pokestop_incident_grunt_type = ps_data[0][7]
+    stored_pokestop_id = ps_data[0]['id']
+    stored_pokestop_name = ps_data[0]['name']
+    stored_pokestop_url = ps_data[0]['url']
+    stored_pokestop_lat = ps_data[0]['lat']
+    stored_pokestop_lon = ps_data[0]['lon']
+    stored_pokestop_incident_start = ps_data[0]['incident_start']
+    stored_pokestop_incident_expiration = ps_data[0]['incident_expiration']
+    stored_pokestop_incident_grunt_type = ps_data[0]['incident_grunt_type']
     current_epoch_time = calendar.timegm(datetime.datetime.utcnow().timetuple())
 
     update_pokestop_url = "UPDATE pokestops SET url='" + str(url) + "' WHERE id='" + str(stored_pokestop_id) + "';"
@@ -813,15 +824,15 @@ def process_pokestop(data):
     #Check to see if stored Pokestop has URL, if not update the URL
     if stored_pokestop_url is None and url is not None:
         try:
-            database.ping(reconnect=True, attempts=2, delay=0)
+            cursor = database.connection.cursor()
             cursor.execute(update_pokestop_url)
-            database.commit()
+            database.connection.commit()
         
             if ( POKESTOP_DEBUG ):
                 print("POKESTOP URL UPDATED. URL: " + str(url))
                 logging.debug("POKESTOP URL UPDATED. URL: " + str(url))
         except:
-            database.rollback()
+            database.connection.rollback()
             if ( POKESTOP_DEBUG ):
                 print("FAILED TO UPDATE POKESTOP URL. URL: " + str(url))
                 logging.debug("FAILED TO UPDATE POKESTOP URL. URL: " + str(url))
@@ -874,9 +885,9 @@ def process_pokestop(data):
                     logging.debug("POKESTOP DEBUG: DUPLICATE DETECTED: " + str(incident_expiration) + " = " + str(stored_pokestop_incident_expiration))
             else:
                 try:
-                    database.ping(reconnect=True, attempts=2, delay=0)
+                    cursor = database.connection.cursor()
                     cursor.execute(update_dark_stop_query)
-                    database.commit()
+                    database.connection.commit()
                     
                     if ( POKESTOP_DEBUG ):
                         print("POKESTOP UPDATED AS DARK STOP. INCIDENT START: " + str(incident_start))
@@ -889,7 +900,7 @@ def process_pokestop(data):
                     if webhook_url != '':
                         alert = notify(data)
                 except:
-                    database.rollback()
+                    database.connection.rollback()
                     if ( POKESTOP_DEBUG ):
                         print("FAILED TO UPDATE POKESTOP INCIDENT START. INCIDENT START: " + str(incident_start))
                         logging.debug("FAILED TO UPDATE POKESTOP INCIDENT START. INCIDENT START: " + str(incident_start))
@@ -901,7 +912,8 @@ def process_pokestop(data):
 
 @app.route('/submit', methods=['POST'])
 def webhook():
-
+    cursor = database.connection.cursor()
+     
     if request.method == 'POST':
         utc_now = pytz.utc.localize(datetime.datetime.utcnow())
         pst_now = utc_now.astimezone(pytz.timezone("America/Los_Angeles"))
