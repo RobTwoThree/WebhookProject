@@ -330,7 +330,6 @@ def process_pokemon(data):
     except:
         database.connection.rollback()
 
-    print(encounter_id_count)
     #New pokemon, go ahead and insert new
     if not ( encounter_id_count ):
         try:
